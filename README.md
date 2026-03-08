@@ -1,5 +1,9 @@
 # NODE ZERO👾
+
+*GDAI judged game.👨‍💻*
+---
 > *"You are the anomaly. Break free — or be deleted."*
+---
 
 **Xpecto'26 GameJam — IIT Mandi**📍
 <br><br>Themes: **Locked & Linked · Pattern Breaker · Light the Path**
