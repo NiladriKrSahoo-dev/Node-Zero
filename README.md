@@ -7,7 +7,7 @@
 ---
 
 ## Play Now
-🎮 **[Launch NODE ZERO](https://YOUR-USERNAME.github.io/node-zero/)**
+🎮 **[Launch NODE ZERO](https://niladrikrsahoo-dev.github.io/Node-Zero/)**
 
 Or download `index.html` and open it in any browser. No install. No server. Just open and play.🚀
 
