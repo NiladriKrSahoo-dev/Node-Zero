@@ -13,3 +13,7 @@ You may get blocked by the map somewhere by a single block. You can use the dash
 
 ## Built by🔥
 Niladri Kumar Sahoo & Aditya Sen
+
+---
+
+<p align="center">Made with ❤️ from 🇮🇳</p>
