@@ -1352,7 +1352,6 @@ function updateEnemies() {
     if (!ghostActive && distToPlayer < e.size + 14 && frameCount%45===0) {
       playerHP -= chaosMode ? 0 : 2;
       triggerGlitch();
-      spawnParticles(playerPos.x, playerPos.y, playerPos.z, C_RED, 8);
       updateHUD();
       if (playerHP <= 0) { endGame('dead'); return; }
     }
@@ -1467,8 +1466,6 @@ function updateBullets() {
       const dz = b.mesh.position.z - e.mesh.position.z;
       if (Math.sqrt(dx*dx+dz*dz) < e.size+5) {
         // Hit!
-        spawnParticles(e.mesh.position.x, e.mesh.position.y, e.mesh.position.z,
-          e.type==='enforcer'?C_RED:C_BLUE, 10);
         spawnLightRing(e.mesh.position.x, e.mesh.position.z); // Light the Path
 
         // Chain reaction — hit propagates to linked enemies
@@ -1539,7 +1536,6 @@ function killEnemy(idx) {
   if (!e||!e.mesh) return;
   score += e.score * floor;
   kills++; totalKills++;
-  spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_RED,14);
   spawnLightRing(e.mesh.position.x,e.mesh.position.z);
   scene.remove(e.mesh);
   if(e.light) scene.remove(e.light);
@@ -1552,15 +1548,15 @@ function killEnemy(idx) {
 // They literally "light the path" — illuminate the dark map around them
 function spawnLightRing(x, z) {
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(5, 8, 16),
-    new THREE.MeshBasicMaterial({ color: C_BLUE, transparent:true, opacity:0.4, side:THREE.DoubleSide })
+    new THREE.RingGeometry(6.5, 7.5, 16),
+    new THREE.MeshBasicMaterial({ color: C_BLUE, transparent:true, opacity:0.15, side:THREE.DoubleSide })
   );
   ring.rotation.x = -Math.PI/2;
   ring.position.set(x, 3, z);
   scene.add(ring);
 
   // Temporary light burst
-  const burstLight = new THREE.PointLight(C_BLUE, 1.0, 80);
+  const burstLight = new THREE.PointLight(C_BLUE, 0.4, 60);
   burstLight.position.set(x, 30, z);
   scene.add(burstLight);
 
@@ -1576,8 +1572,8 @@ function updateLightPulses() {
     p.scale += 2.0;
     p.life -= 0.04;
     p.mesh.scale.set(p.scale,p.scale,p.scale);
-    p.mesh.material.opacity = p.life * 0.4;
-    p.light.intensity = p.life * 1.0;
+    p.mesh.material.opacity = p.life * 0.15;
+    p.light.intensity = p.life * 0.4;
     if(p.life<=0) {
       scene.remove(p.mesh); scene.remove(p.light);
       lightPulses.splice(i,1);
@@ -2090,7 +2086,6 @@ function updateBossBullets() {
     const dx=playerPos.x-b.mesh.position.x, dz=playerPos.z-b.mesh.position.z;
     if(Math.sqrt(dx*dx+dz*dz)<20) {
       playerHP-=3; triggerGlitch(); updateHUD();
-      spawnParticles(playerPos.x,playerPos.y,playerPos.z,C_RED,6);
       scene.remove(b.mesh); bossBullets.splice(i,1);
       if(playerHP<=0){endGame('dead');return;}
     }
@@ -2126,7 +2121,6 @@ function checkBulletVsBoss() {
     if(Math.sqrt(dx*dx+dz*dz)<50) {
       bossHP--;
       score+=5;
-      spawnParticles(bossObj.mesh.position.x,bossObj.mesh.position.y,bossObj.mesh.position.z,C_RED,6);
       spawnLightRing(bossObj.mesh.position.x,bossObj.mesh.position.z);
       removeBullet(i);
       updateHUD();
