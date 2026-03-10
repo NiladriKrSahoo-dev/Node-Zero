@@ -631,7 +631,7 @@ const W = window.innerWidth, H = window.innerHeight;
 const TILE = 64;          // Size of each floor tile in pixels
 const GRID_W = 15;        // Floor grid width (tiles)
 const GRID_H = 12;        // Floor grid height (tiles)
-const PLAYER_SPEED = 3.2;
+const PLAYER_SPEED = 4.5;
 const BULLET_SPEED = 9;
 const CHAIN_RADIUS = 110; // How far hive-mind links reach
 
@@ -792,9 +792,96 @@ function makeLine(x1, y1, z1, x2, y2, z2, color, opacity = 1) {
   return new THREE.Line(geo, mat);
 }
 
-// ── FLOOR GENERATOR (Procedural — key technical feature) ──────
-// Procedural generation means the layout is DIFFERENT every run
-// We use a simple cellular automaton / random walk approach
+// ── FLOOR GENERATOR (Fixed layouts — only Architect modifies them) ──
+// Each floor has a hand-crafted fixed layout.
+// The Architect enemy is the ONLY thing that can change the layout during gameplay.
+
+// Seeded pseudo-random number generator for consistent cosmetic details
+let _seed = 12345;
+function seededRandom() {
+  _seed = (_seed * 16807 + 0) % 2147483647;
+  return (_seed - 1) / 2147483646;
+}
+
+// Fixed grid layouts for each floor (12 rows × 15 cols)
+// 0 = floor, 1 = wall, 2 = exit, 3 = secret terminal
+const FIXED_LAYOUTS = {
+  // Floor 1: Open office — pillars only near outer edges
+  1: [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+  // Floor 2: A few obstacles near the edges only
+  2: [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+  // Floor 3: Wide arena — Architect appears, blocks at far edges
+  3: [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+  // Floor 4: Light cover at edges — secret terminal in far corner
+  4: [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+  // Floor 5+: Final stretch — sparse cover at far edges
+  5: [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+};
 
 function generateFloor(floorNum) {
   // Clear previous floor objects
@@ -805,62 +892,42 @@ function generateFloor(floorNum) {
   floorTiles = []; wallMeshes = [];
   exitMesh = null; secretTerminal = null;
 
-  // Initialize grid — all walls
-  gridMap = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(1));
+  // Reset seeded RNG for consistent cosmetic details per floor
+  _seed = floorNum * 7919 + 12345;
 
-  // Random walk to carve open floor space
-  // This guarantees a connected path exists
-  let cx = Math.floor(GRID_W / 2);
-  let cz = Math.floor(GRID_H / 2);
-  gridMap[cz][cx] = 0;
-  const steps = GRID_W * GRID_H * 2;
-  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-  for (let i = 0; i < steps; i++) {
-    const [dx, dz] = dirs[Math.floor(Math.random() * 4)];
-    const nx = Math.max(1, Math.min(GRID_W-2, cx+dx));
-    const nz = Math.max(1, Math.min(GRID_H-2, cz+dz));
-    cx = nx; cz = nz;
-    gridMap[cz][cx] = 0;
-    // Carve wider corridors occasionally
-    if (Math.random() > 0.7) {
-      const nx2 = Math.max(1, Math.min(GRID_W-2, cx+1));
-      const nz2 = Math.max(1, Math.min(GRID_H-2, cz+1));
-      gridMap[nz2][nx2] = 0;
-    }
-  }
+  // Use fixed layout — pick layout by floor, cycle if beyond 5
+  const layoutKey = Math.min(floorNum, 5);
+  const fixedLayout = FIXED_LAYOUTS[layoutKey];
 
-  // Place exit on a guaranteed open floor tile, far from center
-  // We scan from the far corner inward until we find an open tile
-  let ex = -1, ez = -1;
-  // Try corners first, then work inward
-  const cornerCandidates = [];
-  for (let z = GRID_H-2; z >= GRID_H/2; z--) {
-    for (let x = GRID_W-2; x >= GRID_W/2; x--) {
-      if (gridMap[z][x] === 0) cornerCandidates.push({x, z});
-    }
-  }
-  if (cornerCandidates.length > 0) {
-    const pick = cornerCandidates[0];
-    ex = pick.x; ez = pick.z;
-  } else {
-    // Fallback: any open tile
-    for (let z = 1; z < GRID_H-1; z++) {
-      for (let x = 1; x < GRID_W-1; x++) {
-        if (gridMap[z][x] === 0) { ex = x; ez = z; }
+  // Deep copy the fixed layout into gridMap
+  gridMap = fixedLayout.map(row => [...row]);
+
+  // If floor >= 4 and secret not found, ensure terminal is placed
+  // (layouts 4 and 5 already have cell value 3 baked in)
+  // If secret already found, remove the terminal marker
+  if (secretFound) {
+    for (let z = 0; z < GRID_H; z++) {
+      for (let x = 0; x < GRID_W; x++) {
+        if (gridMap[z][x] === 3) gridMap[z][x] = 0;
       }
     }
   }
-  gridMap[ez][ex] = 2;
-  exitPos = tileToWorld(ex, ez);
+  // For floors < 4, also clear any terminal markers
+  if (floorNum < 4) {
+    for (let z = 0; z < GRID_H; z++) {
+      for (let x = 0; x < GRID_W; x++) {
+        if (gridMap[z][x] === 3) gridMap[z][x] = 0;
+      }
+    }
+  }
 
-  // Place secret terminal only on floor 4 or higher (rabbit hole easter egg)
-  if (!secretFound && floorNum >= 4) {
-    let tx, tz;
-    do {
-      tx = 1 + Math.floor(Math.random() * (GRID_W - 2));
-      tz = 1 + Math.floor(Math.random() * (GRID_H - 2));
-    } while (gridMap[tz][tx] !== 0);
-    gridMap[tz][tx] = 3;
+  // Find exit position from the layout
+  for (let z = 0; z < GRID_H; z++) {
+    for (let x = 0; x < GRID_W; x++) {
+      if (gridMap[z][x] === 2) {
+        exitPos = tileToWorld(x, z);
+      }
+    }
   }
 
   // Build geometry from grid
@@ -920,8 +987,8 @@ function generateFloor(floorNum) {
 
           // Glowing code lines on screen (thin boxes)
           for(let l=0;l<3;l++){
-            const codeLine = makeBox(TILE*0.15*(0.5+Math.random()*0.5), 1.5, 0.5, C_BLUE, C_BLUE);
-            codeLine.position.set(wx - TILE*0.05 + Math.random()*TILE*0.1, 11+l*4, wz-TILE*0.195);
+            const codeLine = makeBox(TILE*0.15*(0.5+seededRandom()*0.5), 1.5, 0.5, C_BLUE, C_BLUE);
+            codeLine.position.set(wx - TILE*0.05 + seededRandom()*TILE*0.1, 11+l*4, wz-TILE*0.195);
             scene.add(codeLine); floorTiles.push(codeLine);
           }
 
@@ -1019,8 +1086,8 @@ function spawnEnemies(floorNum) {
 
   while (placed < count && attempts < 500) {
     attempts++;
-    const tx = 1 + Math.floor(Math.random() * (GRID_W-2));
-    const tz = 1 + Math.floor(Math.random() * (GRID_H-2));
+    const tx = 1 + Math.floor(seededRandom() * (GRID_W-2));
+    const tz = 1 + Math.floor(seededRandom() * (GRID_H-2));
     if (gridMap[tz] && gridMap[tz][tx] !== 0) continue;
 
     const world = tileToWorld(tx, tz);
@@ -1029,7 +1096,7 @@ function spawnEnemies(floorNum) {
     if (Math.sqrt(dx*dx+dz*dz) < 180) continue;
 
     // Choose enemy type based on floor
-    const typeRoll = Math.random();
+    const typeRoll = seededRandom();
     let type;
     if (floorNum <= 2) {
       // Floors 1-2: only drones, managers, enforcers — no Architect yet
@@ -1100,8 +1167,8 @@ function createEnemy(type, wx, wz, floorNum) {
 
   // Patrol path for drones/managers (Pattern Breaker theme)
   // They follow repeating patterns — player must observe and break them
-  const patrolRadius = 60 + Math.random() * 60;
-  const patrolSpeed = Math.random() * Math.PI * 2;
+  const patrolRadius = 60 + seededRandom() * 60;
+  const patrolSpeed = seededRandom() * Math.PI * 2;
 
   return {
     mesh, light, type,
@@ -1309,8 +1376,8 @@ function glitchWalls() {
     if(gridMap[z][x]===0) {
       const w = tileToWorld(x,z);
       const pdx = w.x-playerPos.x, pdz = w.z-playerPos.z;
-      // 4-tile safe zone around player — never spawns right on top of you
-      const nearPlayer = Math.sqrt(pdx*pdx+pdz*pdz) < TILE*4;
+      // 5-tile safe zone around player — never spawns right on top of you
+      const nearPlayer = Math.sqrt(pdx*pdx+pdz*pdz) < TILE*5;
       if (!nearPlayer) openTiles.push({x,z,wx:w.x,wz:w.z});
     }
   }
@@ -1319,9 +1386,8 @@ function glitchWalls() {
   // This prevents the map from becoming completely impassable
   if (openTiles.length < 20) return;
 
-  // Spawn 2 walls — enough to feel threatening without suffocating
-  // If lots of open space available, occasionally spawn 3
-  const count = openTiles.length > 35 ? 2 + Math.floor(Math.random()*2) : 2;
+  // Spawn 3 to 5 walls — enough to feel threatening without suffocating
+  const count = openTiles.length > 35 ? 3 + Math.floor(Math.random()*3) : 3;
 
   for (let i=0;i<count;i++) {
     if (openTiles.length < 20) break; // stop early if getting too tight
@@ -1559,13 +1625,10 @@ function abilityGlitch() {
   abCooldowns.q = COOLDOWNS.q;
   let count=0;
   enemies.forEach(e=>{
-    const dx=e.mesh.position.x-playerPos.x, dz=e.mesh.position.z-playerPos.z;
-    if(Math.sqrt(dx*dx+dz*dz)<160) {
-      e.stunTimer=90; // 1.5 seconds at 60fps — was 3s, now shorter and more balanced
-      e.glitchVis=30;
-      spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,8);
-      count++;
-    }
+    e.stunTimer=90; // 1.5 seconds at 60fps
+    e.glitchVis=30;
+    spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,8);
+    count++;
   });
   spawnLightRing(playerPos.x,playerPos.z);
   showNotif(`GLITCH ×${count}`,700);
