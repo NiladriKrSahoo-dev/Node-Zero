@@ -6,636 +6,554 @@
 <title>NODE ZERO</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --green:#00FF41;
-  --blue:#00CFFF;
-  --red:#FF2020;
-  --dark:#000A00;
-  --mid:#001a00;
-  --white:#E0FFE0;
-  --dim:#004400;
+--green:#00FF41;
+--blue:#00CFFF;
+--red:#FF2020;
+--dark:#000A00;
+--mid:#001a00;
+--white:#E0FFE0;
+--dim:#004400;
 }
 body{
-  background:var(--dark);
-  color:var(--green);
-  font-family:'Share Tech Mono',monospace;
-  overflow:hidden;
-  width:100vw;height:100vh;
-  cursor:none;
+background:var(--dark);
+color:var(--green);
+font-family:'Share Tech Mono',monospace;
+overflow:hidden;
+width:100vw;height:100vh;
+cursor:none;
 }
 canvas{display:block;position:absolute;top:0;left:0;z-index:1;}
-
-/* ── CUSTOM CURSOR ── */
 #cursor{
-  position:fixed;width:18px;height:18px;
-  border:1.5px solid var(--blue);
-  border-radius:50%;pointer-events:none;z-index:9999;
-  transform:translate(-50%,-50%);
-  transition:transform 0.05s;
+position:fixed;width:18px;height:18px;
+border:1.5px solid var(--blue);
+border-radius:50%;pointer-events:none;z-index:9999;
+transform:translate(-50%,-50%);
+transition:transform 0.05s;
 }
 #cursor::after{
-  content:'';position:absolute;
-  width:4px;height:4px;background:var(--blue);
-  border-radius:50%;top:50%;left:50%;
-  transform:translate(-50%,-50%);
+content:'';position:absolute;
+width:4px;height:4px;background:var(--blue);
+border-radius:50%;top:50%;left:50%;
+transform:translate(-50%,-50%);
 }
-
-/* ── MATRIX RAIN CANVAS ── */
 #matrix-canvas{position:fixed;top:0;left:0;z-index:0;opacity:0.18;}
-
-/* ── SCANLINE OVERLAY ── */
 #scanlines{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:repeating-linear-gradient(
-    0deg,transparent,transparent 2px,
-    rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px
-  );
-  pointer-events:none;z-index:8;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:repeating-linear-gradient(
+0deg,transparent,transparent 2px,
+rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px
+);
+pointer-events:none;z-index:8;
 }
-
-/* ── SCREENS ── */
 .screen{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  z-index:10;background:rgba(0,10,0,0.92);
-  transition:opacity 0.6s;
+position:fixed;top:0;left:0;width:100%;height:100%;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+z-index:10;background:rgba(0,10,0,0.92);
+transition:opacity 0.6s;
 }
 .screen.hidden{opacity:0;pointer-events:none;}
-
-/* ── TITLE ── */
 .game-title{
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(56px,10vw,110px);
-  font-weight:900;
-  color:var(--blue);
-  letter-spacing:12px;
-  text-shadow:0 0 30px var(--blue),0 0 60px rgba(0,207,255,0.4);
-  line-height:1;
-  text-align:center;
+font-family:'Orbitron',sans-serif;
+font-size:clamp(56px,10vw,110px);
+font-weight:900;
+color:var(--blue);
+letter-spacing:12px;
+text-shadow:0 0 30px var(--blue),0 0 60px rgba(0,207,255,0.4);
+line-height:1;
+text-align:center;
 }
 .game-tagline{
-  font-size:11px;letter-spacing:6px;
-  color:var(--green);opacity:0.7;
-  margin-top:14px;text-align:center;
+font-size:11px;letter-spacing:6px;
+color:var(--green);opacity:0.7;
+margin-top:14px;text-align:center;
 }
 .divider{
-  width:80px;height:1px;
-  background:linear-gradient(90deg,transparent,var(--blue),transparent);
-  margin:36px auto;
+width:80px;height:1px;
+background:linear-gradient(90deg,transparent,var(--blue),transparent);
+margin:36px auto;
 }
 .btn{
-  font-family:'Orbitron',sans-serif;
-  font-size:12px;letter-spacing:5px;
-  color:var(--dark);background:var(--blue);
-  border:none;padding:14px 44px;
-  cursor:pointer;pointer-events:all;
-  transition:all 0.15s;
-  text-transform:uppercase;
-  box-shadow:0 0 20px rgba(0,207,255,0.5);
+font-family:'Orbitron',sans-serif;
+font-size:12px;letter-spacing:5px;
+color:var(--dark);background:var(--blue);
+border:none;padding:14px 44px;
+cursor:pointer;pointer-events:all;
+transition:all 0.15s;
+text-transform:uppercase;
+box-shadow:0 0 20px rgba(0,207,255,0.5);
 }
 .btn:hover{background:var(--green);box-shadow:0 0 30px rgba(0,255,65,0.6);transform:scale(1.04);}
 .btn.danger{background:var(--red);box-shadow:0 0 20px rgba(255,32,32,0.5);}
 .btn.danger:hover{background:#ff6060;}
 .btn-row{display:flex;gap:20px;margin-top:8px;}
-
 .controls-info{
-  font-size:10px;letter-spacing:3px;
-  color:var(--green);opacity:0.35;
-  margin-top:28px;text-align:center;line-height:2.2;
+font-size:10px;letter-spacing:3px;
+color:var(--green);opacity:0.35;
+margin-top:28px;text-align:center;line-height:2.2;
 }
 .lore-text{
-  font-size:11px;letter-spacing:2px;
-  color:var(--green);opacity:0.6;
-  max-width:480px;text-align:center;
-  line-height:2;margin-top:8px;
+font-size:11px;letter-spacing:2px;
+color:var(--green);opacity:0.6;
+max-width:480px;text-align:center;
+line-height:2;margin-top:8px;
 }
-
-/* ── HUD ── */
 #hud{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  pointer-events:none;z-index:7;
+position:fixed;top:0;left:0;right:0;bottom:0;
+pointer-events:none;z-index:7;
 }
 #hud-top{
-  position:absolute;top:0;left:0;right:0;
-  display:flex;justify-content:space-between;align-items:flex-start;
-  padding:20px 28px;
+position:absolute;top:0;left:0;right:0;
+display:flex;justify-content:space-between;align-items:flex-start;
+padding:20px 28px;
 }
 .hud-block label{
-  font-size:9px;letter-spacing:4px;
-  color:var(--green);opacity:0.4;display:block;margin-bottom:4px;
+font-size:9px;letter-spacing:4px;
+color:var(--green);opacity:0.4;display:block;margin-bottom:4px;
 }
 .hud-block .val{
-  font-family:'Orbitron',sans-serif;
-  font-size:28px;font-weight:700;
-  color:var(--blue);
-  text-shadow:0 0 12px var(--blue);
-  line-height:1;
+font-family:'Orbitron',sans-serif;
+font-size:28px;font-weight:700;
+color:var(--blue);
+text-shadow:0 0 12px var(--blue);
+line-height:1;
 }
 .hud-block .val.danger{color:var(--red);text-shadow:0 0 12px var(--red);}
-
 #health-wrap{width:160px;}
 #health-bar-bg{
-  width:100%;height:3px;
-  background:rgba(0,255,65,0.1);margin-top:6px;
+width:100%;height:3px;
+background:rgba(0,255,65,0.1);margin-top:6px;
 }
 #health-bar{
-  height:3px;background:var(--green);
-  width:100%;transition:width 0.3s,background 0.3s;
-  box-shadow:0 0 8px var(--green);
+height:3px;background:var(--green);
+width:100%;transition:width 0.3s,background 0.3s;
+box-shadow:0 0 8px var(--green);
 }
-
-/* ability icons */
 #abilities{
-  position:absolute;bottom:24px;left:50%;
-  transform:translateX(-50%);
-  display:flex;gap:12px;
+position:absolute;bottom:48px;left:50%;
+transform:translateX(-50%);
+display:flex;gap:12px;
 }
 .ability{
-  width:52px;height:52px;
-  border:1px solid rgba(0,207,255,0.3);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  font-size:9px;letter-spacing:2px;
-  color:var(--blue);opacity:0.7;
-  position:relative;
+width:52px;height:52px;
+border:1px solid rgba(0,207,255,0.3);
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+font-size:9px;letter-spacing:2px;
+color:var(--blue);opacity:0.7;
+position:relative;
 }
 .ability .key{
-  font-family:'Orbitron',sans-serif;
-  font-size:14px;font-weight:700;
-  color:var(--blue);
+font-family:'Orbitron',sans-serif;
+font-size:14px;font-weight:700;
+color:var(--blue);
 }
 .ability .cooldown-bar{
-  position:absolute;bottom:0;left:0;
-  height:2px;background:var(--blue);
-  width:0%;transition:width 0.1s;
-  box-shadow:0 0 6px var(--blue);
+position:absolute;bottom:0;left:0;
+height:2px;background:var(--blue);
+width:0%;transition:width 0.1s;
+box-shadow:0 0 6px var(--blue);
 }
 .ability.ready{border-color:var(--blue);opacity:1;}
 .ability.on-cooldown{opacity:0.3;}
-
-/* floor indicator */
 #floor-display{
-  position:absolute;top:20px;left:50%;
-  transform:translateX(-50%);
-  font-family:'Orbitron',sans-serif;
-  font-size:11px;letter-spacing:5px;
-  color:var(--green);opacity:0.5;
+position:absolute;top:70px;left:50%;
+transform:translateX(-50%);
+font-family:'Orbitron',sans-serif;
+font-size:11px;letter-spacing:5px;
+color:var(--green);opacity:0.5;
 }
-
-/* ── NOTIFICATIONS ── */
 #notif{
-  position:fixed;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(28px,5vw,56px);
-  font-weight:900;letter-spacing:8px;
-  color:var(--blue);
-  text-shadow:0 0 30px var(--blue);
-  opacity:0;pointer-events:none;
-  z-index:20;transition:opacity 0.3s;
-  text-align:center;white-space:nowrap;
+position:fixed;top:50%;left:50%;
+transform:translate(-50%,-50%);
+font-family:'Orbitron',sans-serif;
+font-size:clamp(28px,5vw,56px);
+font-weight:900;letter-spacing:8px;
+color:var(--blue);
+text-shadow:0 0 30px var(--blue);
+opacity:0;pointer-events:none;
+z-index:20;transition:opacity 0.3s;
+text-align:center;white-space:nowrap;
 }
 #sub-notif{
-  position:fixed;top:calc(50% + 50px);left:50%;
-  transform:translateX(-50%);
-  font-size:11px;letter-spacing:5px;
-  color:var(--green);opacity:0;
-  pointer-events:none;z-index:20;
-  transition:opacity 0.3s;text-align:center;
+position:fixed;top:calc(50% + 50px);left:50%;
+transform:translateX(-50%);
+font-size:11px;letter-spacing:5px;
+color:var(--green);opacity:0;
+pointer-events:none;z-index:20;
+transition:opacity 0.3s;text-align:center;
 }
 #danger-notif{
-  position:fixed;top:30%;left:50%;
-  transform:translateX(-50%);
-  font-family:'Orbitron',sans-serif;
-  font-size:14px;letter-spacing:6px;
-  color:var(--red);
-  text-shadow:0 0 15px var(--red);
-  opacity:0;pointer-events:none;z-index:20;
+position:fixed;top:60%;left:50%;
+transform:translateX(-50%);
+font-family:'Orbitron',sans-serif;
+font-size:18px;
+font-weight:700;
+letter-spacing:6px;
+color:var(--red);
+text-shadow:0 0 20px var(--red), 0 0 10px var(--red);
+background: rgba(255, 32, 32, 0.1);
+padding: 8px 16px;
+border-radius: 4px;
+border: 1px solid rgba(255, 32, 32, 0.3);
+opacity:0;pointer-events:none;z-index:20;
 }
-
-/* ── GLITCH OVERLAY ── */
 #glitch{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  pointer-events:none;z-index:15;opacity:0;
-  background:linear-gradient(transparent 0%,rgba(0,255,65,0.03) 50%,transparent 100%);
+position:fixed;top:0;left:0;width:100%;height:100%;
+pointer-events:none;z-index:15;opacity:0;
+background:linear-gradient(transparent 0%,rgba(0,255,65,0.03) 50%,transparent 100%);
 }
-
-/* ── FLASH ── */
 #flash{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:var(--blue);opacity:0;
-  pointer-events:none;z-index:16;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:var(--blue);opacity:0;
+pointer-events:none;z-index:16;
 }
-
-/* ── MINIMAP ── */
 #minimap{
-  position:absolute;bottom:24px;right:28px;
-  width:120px;height:120px;
-  border:1px solid rgba(0,207,255,0.2);
-  background:rgba(0,10,0,0.8);
-  overflow:hidden;
+position:absolute;bottom:24px;right:28px;
+width:120px;height:120px;
+border:1px solid rgba(0,207,255,0.2);
+background:rgba(0,10,0,0.8);
+overflow:hidden;
 }
 #minimap canvas{width:100%;height:100%;}
 #minimap-label{
-  font-size:8px;letter-spacing:3px;
-  color:var(--blue);opacity:0.4;
-  text-align:center;padding:2px 0;
+font-size:8px;letter-spacing:3px;
+color:var(--blue);opacity:0.4;
+text-align:center;padding:2px 0;
 }
-
-/* ── OPENING CINEMATIC ── */
 #cinematic{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#000A00;z-index:100;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000A00;z-index:100;
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
 }
 #cinematic.hidden{display:none;}
 #cinematic-canvas{display:block;width:100vw;height:100vh;}
 #cinematic-text{
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%, -50%);
-  font-size:15px;letter-spacing:5px;
-  color:var(--green);opacity:0;
-  text-align:center;line-height:2.4;
-  max-width:560px;
-  transition:opacity 1.2s;
-  text-shadow:0 0 20px var(--green);
-  z-index:101;
-  white-space:pre-line;
-  pointer-events:none;
+position:absolute;
+top:50%; left:50%;
+transform:translate(-50%, -50%);
+font-size:15px;letter-spacing:5px;
+color:var(--green);opacity:0;
+text-align:center;line-height:2.4;
+max-width:560px;
+transition:opacity 1.2s;
+text-shadow:0 0 20px var(--green);
+z-index:101;
+white-space:pre-line;
+pointer-events:none;
 }
 #skip-btn{
-  position:absolute;bottom:24px;right:32px;
-  font-family:'Share Tech Mono',monospace;
-  font-size:10px;letter-spacing:4px;
-  color:var(--green);opacity:0.3;
-  background:none;border:none;cursor:pointer;
-  pointer-events:all;
+position:absolute;bottom:24px;right:32px;
+font-family:'Share Tech Mono',monospace;
+font-size:10px;letter-spacing:4px;
+color:var(--green);opacity:0.3;
+background:none;border:none;cursor:pointer;
+pointer-events:all;
 }
 #skip-btn:hover{opacity:0.8;}
-
-/* ── EASTER EGG SCREENS ── */
 #dream-screen{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#0a0005;z-index:60;
-  display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#0a0005;z-index:60;
+display:none;flex-direction:column;
+align-items:center;justify-content:center;
+font-family:'Share Tech Mono',monospace;
 }
 #dream-screen.show{display:flex;}
 .dream-title{
-  font-size:clamp(20px,4vw,36px);
-  color:#cc99ff;letter-spacing:4px;
-  line-height:1.8;text-align:center;
-  max-width:600px;opacity:0;
-  transition:opacity 1.5s;
+font-size:clamp(20px,4vw,36px);
+color:#cc99ff;letter-spacing:4px;
+line-height:1.8;text-align:center;
+max-width:600px;opacity:0;
+transition:opacity 1.5s;
 }
 .dream-title.show{opacity:1;}
 .dream-sub{
-  font-size:10px;letter-spacing:4px;
-  color:#664488;margin-top:32px;opacity:0;
-  transition:opacity 1.5s 1s;
+font-size:10px;letter-spacing:4px;
+color:#664488;margin-top:32px;opacity:0;
+transition:opacity 1.5s 1s;
 }
 .dream-sub.show{opacity:1;}
-
 #simulation-screen{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#000A00;z-index:60;
-  display:none;flex-direction:column;
-  align-items:center;justify-content:center;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000A00;z-index:60;
+display:none;flex-direction:column;
+align-items:center;justify-content:center;
 }
 #simulation-screen.show{display:flex;}
 .sim-text{
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(14px,3vw,28px);
-  color:var(--green);letter-spacing:6px;
-  text-align:center;line-height:2;
-  text-shadow:0 0 20px var(--green);
+font-family:'Orbitron',sans-serif;
+font-size:clamp(14px,3vw,28px);
+color:var(--green);letter-spacing:6px;
+text-align:center;line-height:2;
+text-shadow:0 0 20px var(--green);
 }
-
-/* game over */
 #go-score{
-  font-family:'Orbitron',sans-serif;
-  font-size:64px;font-weight:900;
-  color:var(--red);
-  text-shadow:0 0 20px var(--red);
+font-family:'Orbitron',sans-serif;
+font-size:64px;font-weight:900;
+color:var(--red);
+text-shadow:0 0 20px var(--red);
 }
 #go-detail{font-size:11px;letter-spacing:4px;opacity:0.4;margin-top:8px;}
-
-/* win */
 #win-detail{
-  font-size:11px;letter-spacing:3px;
-  opacity:0.5;margin-top:8px;
-  text-align:center;line-height:2;
+font-size:11px;letter-spacing:3px;
+opacity:0.5;margin-top:8px;
+text-align:center;line-height:2;
 }
 #secret-credits{
-  font-size:10px;letter-spacing:3px;
-  color:var(--blue);opacity:0.6;
-  margin-top:20px;text-align:center;
-  line-height:2;
-  border:1px solid rgba(0,207,255,0.2);
-  padding:16px 32px;
+font-size:10px;letter-spacing:3px;
+color:var(--blue);opacity:0.6;
+margin-top:20px;text-align:center;
+line-height:2;
+border:1px solid rgba(0,207,255,0.2);
+padding:16px 32px;
 }
-
-/* hidden easter egg credits */
 #hidden-credits{
-  position:fixed;bottom:8px;left:12px;
-  font-size:8px;letter-spacing:2px;
-  opacity:0.04;color:var(--green);
-  pointer-events:none;z-index:2;
-  line-height:1.8;
+position:fixed;bottom:8px;left:12px;
+font-size:8px;letter-spacing:2px;
+opacity:0.04;color:var(--green);
+pointer-events:none;z-index:2;
+line-height:1.8;
 }
-
-/* konami easter egg */
 #chaos-banner{
-  position:fixed;top:20px;left:50%;
-  transform:translateX(-50%);
-  font-family:'Orbitron',sans-serif;
-  font-size:12px;letter-spacing:6px;
-  color:var(--red);
-  text-shadow:0 0 15px var(--red);
-  opacity:0;pointer-events:none;z-index:30;
-  transition:opacity 0.3s;
+position:fixed;top:20px;left:50%;
+transform:translateX(-50%);
+font-family:'Orbitron',sans-serif;
+font-size:12px;letter-spacing:6px;
+color:var(--red);
+text-shadow:0 0 15px var(--red);
+opacity:0;pointer-events:none;z-index:30;
+transition:opacity 0.3s;
 }
 </style>
 </head>
 <body>
-
-<!-- Matrix rain -->
 <canvas id="matrix-canvas"></canvas>
-<!-- Game canvas -->
 <canvas id="canvas"></canvas>
-<!-- Scanlines -->
 <div id="scanlines"></div>
-<!-- Custom cursor -->
 <div id="cursor"></div>
-<!-- Glitch overlay -->
 <div id="glitch"></div>
-<!-- Flash -->
 <div id="flash"></div>
-
-<!-- Hidden easter egg credits (opacity 4%) -->
 <div id="hidden-credits">
-  NODE ZERO — XPECTO'26 — IIT MANDI<br>
-  BUILT BY: NILADRI KUMAR SAHOO & ADITYA SEN<br>
-  "WE BROKE THE LOOP."
+NODE ZERO — XPECTO'26 — IIT MANDI<br>
+BUILT BY: NILADRI KUMAR SAHOO & ADITYA SEN<br>
+"WE BROKE THE LOOP."
 </div>
-
-<!-- Chaos mode banner -->
 <div id="chaos-banner">⚡ CHAOS MODE ACTIVATED ⚡</div>
-
-<!-- ── OPENING CINEMATIC ── -->
 <div id="cinematic">
-  <canvas id="cinematic-canvas"></canvas>
-  <div id="cinematic-text"></div>
-  <button id="skip-btn">[ PRESS SPACE OR CLICK TO SKIP ]</button>
+<canvas id="cinematic-canvas"></canvas>
+<div id="cinematic-text"></div>
+<button id="skip-btn">[ PRESS SPACE OR CLICK TO SKIP ]</button>
 </div>
-
-<!-- ── HUD ── -->
 <div id="hud" style="display:none;">
-  <div id="floor-display">FLOOR 01 — SECTOR UNKNOWN</div>
-  <div id="hud-top">
-    <div class="hud-block">
-      <label>SCORE</label>
-      <div class="val" id="score-val">0000</div>
-    </div>
-    <div class="hud-block" id="health-wrap">
-      <label>HULL INTEGRITY</label>
-      <div class="val" id="hp-val">100</div>
-      <div id="health-bar-bg"><div id="health-bar"></div></div>
-    </div>
-    <div class="hud-block">
-      <label>FLOOR</label>
-      <div class="val" id="floor-val">01</div>
-    </div>
-  </div>
-  <div id="abilities">
-    <div class="ability ready" id="ab-q">
-      <div class="key">Q</div>
-      <div style="font-size:7px;margin-top:2px;">GLITCH</div>
-      <div class="cooldown-bar" id="cd-q"></div>
-    </div>
-    <div class="ability ready" id="ab-e">
-      <div class="key">E</div>
-      <div style="font-size:7px;margin-top:2px;">DASH</div>
-      <div class="cooldown-bar" id="cd-e"></div>
-    </div>
-    <div class="ability ready" id="ab-r">
-      <div class="key">R</div>
-      <div style="font-size:7px;margin-top:2px;">GHOST</div>
-      <div class="cooldown-bar" id="cd-r"></div>
-    </div>
-    <div class="ability" id="ab-f" style="border-color:rgba(0,255,65,0.15);color:var(--green);opacity:0.2;">
-      <div class="key" style="color:var(--green);">F</div>
-      <div style="font-size:7px;margin-top:2px;color:var(--green);">???</div>
-      <div class="cooldown-bar" id="cd-f" style="background:var(--green);"></div>
-    </div>
-  </div>
-  <div id="minimap">
-    <canvas id="minimap-canvas" width="120" height="120"></canvas>
-    <div id="minimap-label">SECTOR MAP</div>
-  </div>
-  <div id="danger-notif"></div>
-  <!-- Permanent dash tip — always visible so player never gets stuck -->
-  <div id="dash-tip" style="
-    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-    font-family:'Share Tech Mono',monospace;
-    font-size:9px;letter-spacing:3px;color:#00CFFF;
-    opacity:0.55;pointer-events:none;z-index:10;
-    text-shadow:0 0 8px #00CFFF;
-  ">[ E ] STATIC DASH — USE TO PHASE THROUGH WALLS &amp; REACH THE EXIT</div>
+<div id="floor-display">FLOOR 01 — SECTOR UNKNOWN</div>
+<div id="hud-top">
+<div class="hud-block">
+<label>SCORE</label>
+<div class="val" id="score-val">0000</div>
 </div>
-
-<!-- Notifications -->
+<div class="hud-block" id="health-wrap">
+<label>HULL INTEGRITY</label>
+<div class="val" id="hp-val">100</div>
+<div id="health-bar-bg"><div id="health-bar"></div></div>
+</div>
+<div class="hud-block">
+<label>FLOOR</label>
+<div class="val" id="floor-val">01</div>
+</div>
+</div>
+<div id="abilities">
+<div class="ability ready" id="ab-q">
+<div class="key">Q</div>
+<div style="font-size:7px;margin-top:2px;">GLITCH</div>
+<div class="cooldown-bar" id="cd-q"></div>
+</div>
+<div class="ability ready" id="ab-e">
+<div class="key">E</div>
+<div style="font-size:7px;margin-top:2px;">DASH</div>
+<div class="cooldown-bar" id="cd-e"></div>
+</div>
+<div class="ability ready" id="ab-r">
+<div class="key">R</div>
+<div style="font-size:7px;margin-top:2px;">GHOST</div>
+<div class="cooldown-bar" id="cd-r"></div>
+</div>
+<div class="ability" id="ab-f" style="border-color:rgba(0,255,65,0.15);color:var(--green);opacity:0.2;">
+<div class="key" style="color:var(--green);">F</div>
+<div style="font-size:7px;margin-top:2px;color:var(--green);">???</div>
+<div class="cooldown-bar" id="cd-f" style="background:var(--green);"></div>
+</div>
+</div>
+<div id="minimap">
+<canvas id="minimap-canvas" width="120" height="120"></canvas>
+<div id="minimap-label">SECTOR MAP</div>
+</div>
+<div id="danger-notif"></div>
+<div id="dash-tip" style="
+position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+font-family:'Orbitron',sans-serif;
+font-size:11px;font-weight:700;letter-spacing:4px;color:rgba(0, 207, 255, 0.9);
+pointer-events:none;z-index:10;
+text-shadow:0 0 12px rgba(0, 207, 255, 0.8);
+">[ E ] STATIC DASH — USE TO PHASE THROUGH WALLS &amp; REACH THE EXIT</div>
+</div>
 <div id="notif"></div>
 <div id="sub-notif"></div>
-
-<!-- ── START SCREEN ── -->
 <div class="screen" id="start-screen">
-  <div class="game-title">NODE<br>ZERO</div>
-  <div class="game-tagline">LOCKED & LINKED · PATTERN BREAKER · LIGHT THE PATH</div>
-  <div class="divider"></div>
-  <div class="lore-text">
-    You are employee #0000.<br>
-    You are the anomaly in the system.<br>
-    Break free — or be deleted.
-  </div>
-  <div class="divider"></div>
-  <div class="btn-row">
-    <button class="btn" id="start-btn">INITIALIZE</button>
-  </div>
-  <div class="controls-info">
-    WASD / ARROWS — MOVE &nbsp;·&nbsp; Q — GLITCH &nbsp;·&nbsp; E — DASH &nbsp;·&nbsp; R — GHOST<br>
-    REACH THE EXIT ON EACH FLOOR &nbsp;·&nbsp; SURVIVE THE DIRECTOR
-  </div>
+<div class="game-title">NODE<br>ZERO</div>
+<div class="game-tagline">LOCKED & LINKED · PATTERN BREAKER · LIGHT THE PATH</div>
+<div class="divider"></div>
+<div class="lore-text">
+You are employee #0000.<br>
+You are the anomaly in the system.<br>
+Break free — or be deleted.
 </div>
-
-<!-- ── GAME OVER SCREEN ── -->
+<div class="divider"></div>
+<div class="btn-row">
+<button class="btn" id="start-btn">INITIALIZE</button>
+</div>
+<div class="controls-info">
+WASD / ARROWS — MOVE &nbsp;·&nbsp; Q — GLITCH &nbsp;·&nbsp; E — DASH &nbsp;·&nbsp; R — GHOST<br>
+REACH THE EXIT ON EACH FLOOR &nbsp;·&nbsp; SURVIVE THE DIRECTOR
+</div>
+</div>
 <div class="screen hidden" id="gameover-screen">
-  <div class="game-title" style="color:var(--red);text-shadow:0 0 30px var(--red);">PROCESS<br>TERMINATED</div>
-  <div class="divider"></div>
-  <div id="go-score">0</div>
-  <div id="go-detail">FLOOR 1 · 0 DRONES NEUTRALIZED</div>
-  <div class="divider"></div>
-  <div class="btn-row">
-    <button class="btn danger" id="restart-btn">REBOOT</button>
-    <button class="btn" id="go-menu-btn">MAIN MENU</button>
-  </div>
+<div class="game-title" style="color:var(--red);text-shadow:0 0 30px var(--red);">PROCESS<br>TERMINATED</div>
+<div class="divider"></div>
+<div id="go-score">0</div>
+<div id="go-detail">FLOOR 1 · 0 DRONES NEUTRALIZED</div>
+<div class="divider"></div>
+<div class="btn-row">
+<button class="btn danger" id="restart-btn">REBOOT</button>
+<button class="btn" id="go-menu-btn">MAIN MENU</button>
 </div>
-
-<!-- ── WIN SCREEN ── -->
+</div>
 <div class="screen hidden" id="win-screen" style="overflow-y:auto;padding:24px 16px;">
-  <div class="game-title" style="color:var(--green);text-shadow:0 0 30px var(--green);font-size:clamp(32px,5.5vw,60px);">NODE<br>ZERO</div>
-  <div class="game-tagline" style="color:var(--blue);margin-top:8px;">SYSTEM LIBERATED</div>
-  <div class="divider" style="margin:16px auto;"></div>
-  <div id="win-detail" style="font-size:11px;letter-spacing:2px;color:var(--green);line-height:1.8;text-align:center;max-width:480px;opacity:0.85;">
-    The screen glitches.<br>
-    The office dissolves.<br>
-    You're back in your room.<br><br>
-    <span style="color:var(--blue);">"I did it. I broke free."</span><br><br>
-    ...but wait.<br>
-    Why is your desktop wallpaper the company logo?<br>
-    Why does your coffee mug say <em>Employee of the Month</em>?<br>
-    Why can't you remember yesterday?<br><br>
-    The fan on your PC hums.<br>
-    Somewhere, deep in the system...<br>
-    <span style="color:var(--red);">A new loop begins.</span>
-  </div>
-  <div id="secret-credits" style="margin-top:12px;padding:10px 24px;">
-    ✦ BUILT BY ✦<br>
-    NILADRI KUMAR SAHOO &amp; ADITYA SEN<br>
-    <span style="opacity:0.4;font-size:9px;">XPECTO'26 · IIT MANDI GAMEJAM · NODE ZERO v1.0</span>
-  </div>
-  <div class="divider" style="margin:14px auto;"></div>
-  <div class="btn-row">
-    <button class="btn" id="win-restart-btn">ENTER THE LOOP AGAIN</button>
-    <button class="btn danger" id="win-exit-btn">EXIT THE LOOP</button>
-  </div>
+<div class="game-title" style="color:var(--green);text-shadow:0 0 30px var(--green);font-size:clamp(32px,5.5vw,60px);">NODE<br>ZERO</div>
+<div class="game-tagline" style="color:var(--blue);margin-top:8px;">SYSTEM LIBERATED</div>
+<div class="divider" style="margin:16px auto;"></div>
+<div id="win-detail" style="font-size:11px;letter-spacing:2px;color:var(--green);line-height:1.8;text-align:center;max-width:480px;opacity:0.85;">
+The screen glitches.<br>
+The office dissolves.<br>
+You're back in your room.<br><br>
+<span style="color:var(--blue);">"I did it. I broke free."</span><br><br>
+...but wait.<br>
+Why is your desktop wallpaper the company logo?<br>
+Why does your coffee mug say <em>Employee of the Month</em>?<br>
+Why can't you remember yesterday?<br><br>
+The fan on your PC hums.<br>
+Somewhere, deep in the system...<br>
+<span style="color:var(--red);">A new loop begins.</span>
 </div>
-
-<!-- ── THANK YOU SCREEN ── -->
+<div id="secret-credits" style="margin-top:12px;padding:10px 24px;">
+✦ BUILT BY ✦<br>
+NILADRI KUMAR SAHOO &amp; ADITYA SEN<br>
+<span style="opacity:0.4;font-size:9px;">XPECTO'26 · IIT MANDI GAMEJAM · NODE ZERO v1.0</span>
+</div>
+<div class="divider" style="margin:14px auto;"></div>
+<div class="btn-row">
+<button class="btn" id="win-restart-btn">ENTER THE LOOP AGAIN</button>
+<button class="btn danger" id="win-exit-btn">EXIT THE LOOP</button>
+</div>
+</div>
 <div id="thankyou-screen" style="
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#000;z-index:70;
-  display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000;z-index:70;
+display:none;flex-direction:column;
+align-items:center;justify-content:center;
+font-family:'Share Tech Mono',monospace;
 ">
-  <div style="
-    font-family:'Orbitron',sans-serif;
-    font-size:clamp(28px,5vw,56px);font-weight:900;
-    letter-spacing:8px;color:#00CFFF;
-    text-shadow:0 0 30px #00CFFF,0 0 60px rgba(0,207,255,0.3);
-    text-align:center;line-height:1.2;
-  ">THANK YOU<br>FOR PLAYING</div>
-  <div style="
-    width:80px;height:1px;margin:28px auto;
-    background:linear-gradient(90deg,transparent,#00CFFF,transparent);
-  "></div>
-  <div style="
-    font-size:11px;letter-spacing:3px;color:#00FF41;
-    opacity:0.7;text-align:center;line-height:2.2;max-width:460px;
-  ">
-    NODE ZERO v1.0<br>
-    BUILT BY NILADRI KUMAR SAHOO &amp; ADITYA SEN<br>
-    XPECTO'26 · IIT MANDI GAMEJAM
-  </div>
-  <div style="
-    margin-top:40px;padding:16px 28px;
-    border:1px solid rgba(0,255,65,0.15);
-    text-align:center;max-width:420px;
-  ">
-    <div style="font-size:10px;letter-spacing:4px;color:#00FF41;opacity:0.5;margin-bottom:10px;">DID YOU KNOW?</div>
-    <div style="font-size:11px;letter-spacing:2px;color:#00CFFF;opacity:0.8;line-height:1.9;">
-      The first computer bug was an actual bug —<br>
-      a moth stuck in a Harvard Mark II relay in 1947.<br>
-      <span style="color:#FF2020;opacity:0.6;font-size:10px;">Unlike that moth, you escaped the machine. Mostly.</span>
-    </div>
-  </div>
+<div style="
+font-family:'Orbitron',sans-serif;
+font-size:clamp(28px,5vw,56px);font-weight:900;
+letter-spacing:8px;color:#00CFFF;
+text-shadow:0 0 30px #00CFFF,0 0 60px rgba(0,207,255,0.3);
+text-align:center;line-height:1.2;
+">THANK YOU<br>FOR PLAYING</div>
+<div style="
+width:80px;height:1px;margin:28px auto;
+background:linear-gradient(90deg,transparent,#00CFFF,transparent);
+"></div>
+<div style="
+font-size:11px;letter-spacing:3px;color:#00FF41;
+opacity:0.7;text-align:center;line-height:2.2;max-width:460px;
+">
+NODE ZERO v1.0<br>
+BUILT BY NILADRI KUMAR SAHOO &amp; ADITYA SEN<br>
+XPECTO'26 · IIT MANDI GAMEJAM
 </div>
-
-<!-- ── DREAM / INCEPTION SCREEN (death during boss) ── -->
+<div style="
+margin-top:40px;padding:16px 28px;
+border:1px solid rgba(0,255,65,0.15);
+text-align:center;max-width:420px;
+">
+<div style="font-size:10px;letter-spacing:4px;color:#00FF41;opacity:0.5;margin-bottom:10px;">DID YOU KNOW?</div>
+<div style="font-size:11px;letter-spacing:2px;color:#00CFFF;opacity:0.8;line-height:1.9;">
+The first computer bug was an actual bug —<br>
+a moth stuck in a Harvard Mark II relay in 1947.<br>
+<span style="color:#FF2020;opacity:0.6;font-size:10px;">Unlike that moth, you escaped the machine. Mostly.</span>
+</div>
+</div>
+</div>
 <div id="dream-screen">
-  <div class="dream-title" id="dream-title">
-    Huh... This is just my room...<br>
-    Wasn't I in an office right now?<br>
-    Or was I just dreaming?
-  </div>
-  <div class="dream-sub" id="dream-sub">[ PRESS ANY KEY TO WAKE UP ]</div>
+<div class="dream-title" id="dream-title">
+Huh... This is just my room...<br>
+Wasn't I in an office right now?<br>
+Or was I just dreaming?
 </div>
-
-<!-- ── SIMULATION EASTER EGG SCREEN ── -->
+<div class="dream-sub" id="dream-sub">[ PRESS ANY KEY TO WAKE UP ]</div>
+</div>
 <div id="simulation-screen">
-  <div class="sim-text">
-    THIS IS NOT A SIMULATION<br>
-    <span style="font-size:0.5em;opacity:0.4;">...or is it?</span>
-  </div>
-  <div style="font-size:9px;letter-spacing:4px;color:var(--green);opacity:0.3;margin-top:40px;">
-    CONGRATULATIONS. YOU FOUND THE RABBIT HOLE.<br>
-    BUT THE RABBIT HOLE GOES DEEPER.
-  </div>
-  <button class="btn" id="sim-close-btn" style="margin-top:40px;">GO DEEPER</button>
+<div class="sim-text">
+THIS IS NOT A SIMULATION<br>
+<span style="font-size:0.5em;opacity:0.4;">...or is it?</span>
 </div>
-
-<!-- ── FLOOR BRIEFING OVERLAY (pauses game, black screen, readable warning) ── -->
+<div style="font-size:9px;letter-spacing:4px;color:var(--green);opacity:0.3;margin-top:40px;">
+CONGRATULATIONS. YOU FOUND THE RABBIT HOLE.<br>
+BUT THE RABBIT HOLE GOES DEEPER.
+</div>
+<button class="btn" id="sim-close-btn" style="margin-top:40px;">GO DEEPER</button>
+</div>
 <div id="briefing-overlay" style="
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#000;z-index:55;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000;z-index:55;
+display:none;flex-direction:column;align-items:center;justify-content:center;
+font-family:'Share Tech Mono',monospace;
 ">
-  <div id="briefing-floor-label" style="
-    font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:8px;
-    color:#00FF41;opacity:0.5;margin-bottom:32px;
-  ">ENTERING NEW SECTOR</div>
-  <div id="briefing-lines" style="text-align:center;line-height:3;"></div>
-  <div id="briefing-continue" style="
-    font-size:9px;letter-spacing:4px;color:#00CFFF;opacity:0;
-    margin-top:48px;transition:opacity 1s ease;
-  ">[ PRESS ANY KEY OR WAIT... ]</div>
+<div id="briefing-floor-label" style="
+font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:8px;
+color:#00FF41;opacity:0.5;margin-bottom:32px;
+">ENTERING NEW SECTOR</div>
+<div id="briefing-lines" style="text-align:center;line-height:3;"></div>
+<div id="briefing-continue" style="
+font-size:9px;letter-spacing:4px;color:#00CFFF;opacity:0;
+margin-top:48px;transition:opacity 1s ease;
+">[ PRESS ANY KEY OR WAIT... ]</div>
 </div>
-
-<!-- ── CORRUPTED FILE EASTER EGG SCREEN ── -->
 <div id="corrupt-screen" style="
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#000;z-index:60;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#000;z-index:60;
+display:none;flex-direction:column;align-items:center;justify-content:center;
+font-family:'Share Tech Mono',monospace;
 ">
-  <div id="corrupt-content" style="text-align:center;max-width:600px;"></div>
+<div id="corrupt-content" style="text-align:center;max-width:600px;"></div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" onerror="document.body.innerHTML='<div style=\'position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00FF41;text-align:center;padding:40px;box-sizing:border-box\'><div><div style=\'font-size:28px;letter-spacing:8px;margin-bottom:24px\'>NODE ZERO</div><div style=\'color:#FF2020;font-size:14px;letter-spacing:3px;margin-bottom:16px\'>RENDERER FAILED TO LOAD</div><div style=\'color:#888;font-size:11px;line-height:2\'>Three.js could not load from the CDN.<br>Please ensure you have an internet connection<br>and reload the page.<br><br>If offline: contact the team for the bundled version.</div></div></div>'"></script>
 <script>
 'use strict';
-
-// ── RENDERER GUARD ─────────────────────────────────────────────
-// If Three.js CDN failed to load (no internet), show a clear message
-// instead of a cryptic "Uncaught Error: Script error"
 if(typeof THREE === 'undefined') {
-  document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00FF41;text-align:center;padding:40px;box-sizing:border-box"><div><div style="font-size:28px;letter-spacing:8px;margin-bottom:24px">NODE ZERO</div><div style="color:#FF2020;font-size:14px;letter-spacing:3px;margin-bottom:16px">RENDERER FAILED TO LOAD</div><div style="color:#888;font-size:11px;line-height:2">Three.js could not load from the CDN.<br>Check your internet connection and reload.<br><br>If you\'re offline: use the bundled version.</div></div></div>';
-  throw new Error('THREE not loaded — aborting game init');
+document.body.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#00FF41;text-align:center;padding:40px;box-sizing:border-box"><div><div style="font-size:28px;letter-spacing:8px;margin-bottom:24px">NODE ZERO</div><div style="color:#FF2020;font-size:14px;letter-spacing:3px;margin-bottom:16px">RENDERER FAILED TO LOAD</div><div style="color:#888;font-size:11px;line-height:2">Three.js could not load from the CDN.<br>Check your internet connection and reload.<br><br>If you\'re offline: use the bundled version.</div></div></div>';
+throw new Error('THREE not loaded — aborting game init');
 }
-//  Stack: Three.js (WebGL), Vanilla JS, HTML/CSS
-//  Themes: Locked & Linked | Pattern Breaker | Light the Path
-//  Authors: Niladri Kumar Sahoo & Aditya Sen
-//  IIT Mandi GameJam — Xpecto'26
-// ================================================================
-
-// ── CONSTANTS ──────────────────────────────────────────────────
 const W = window.innerWidth, H = window.innerHeight;
-const TILE = 64;          // Size of each floor tile in pixels
-const GRID_W = 15;        // Floor grid width (tiles)
-const GRID_H = 12;        // Floor grid height (tiles)
-const PLAYER_SPEED = 4.5;
-const BULLET_SPEED = 9;
-const CHAIN_RADIUS = 110; // How far hive-mind links reach
-
-// Colors as hex numbers for Three.js
+const TILE = 64;
+const GRID_W = 15;
+const GRID_H = 12;
+const PLAYER_SPEED = 3.0;
+const BULLET_SPEED = 7.5;
+const CHAIN_RADIUS = 110;
 const C_BLUE   = 0x00CFFF;
 const C_GREEN  = 0x00FF41;
 const C_RED    = 0xFF2020;
@@ -645,2239 +563,1726 @@ const C_WALL   = 0x003366;
 const C_EXIT   = 0x00FF41;
 const C_BOSS   = 0xFF2020;
 const C_WHITE  = 0xE0FFE0;
-
-// ── THREE.JS SETUP ─────────────────────────────────────────────
-// Three.js needs: Scene (world), Camera (viewpoint), Renderer (draws to WebGL)
-
 const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setSize(W, H);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(C_DARK, 1);
-
-// Orthographic camera positioned for isometric view
-// Isometric = camera is tilted at 45 degrees looking down at an angle
 const aspect = W / H;
-const frustum = 400; // how much of the world we see
+const frustum = 400;
 const camera = new THREE.OrthographicCamera(
-  -frustum * aspect, frustum * aspect,
-  frustum, -frustum,
-  0.1, 2000
+-frustum * aspect, frustum * aspect,
+frustum, -frustum,
+0.1, 2000
 );
-
-// Isometric angle: rotate camera to get the classic diamond grid look
-// We position it above and to the side, looking at origin
 camera.position.set(300, 400, 300);
 camera.lookAt(0, 0, 0);
-
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(C_DARK, 0.0008); // atmospheric fog
-
-// Lighting — ambient + directional gives depth to isometric view
+scene.fog = new THREE.FogExp2(C_DARK, 0.0008);
 const ambientLight = new THREE.AmbientLight(0x001122, 0.8);
 scene.add(ambientLight);
 const dirLight = new THREE.DirectionalLight(C_BLUE, 0.6);
 dirLight.position.set(100, 200, 100);
 scene.add(dirLight);
-// Player spotlight — "Light the Path" theme: player carries light
 const playerLight = new THREE.PointLight(C_BLUE, 1.5, 180);
 scene.add(playerLight);
-
-// ── MATRIX RAIN (background canvas 2D) ────────────────────────
-// This runs on a separate 2D canvas behind the WebGL canvas
 const matCanvas = document.getElementById('matrix-canvas');
 matCanvas.width = W; matCanvas.height = H;
 const matCtx = matCanvas.getContext('2d');
 const matCols = Math.floor(W / 16);
 const matDrops = Array(matCols).fill(1);
 const matChars = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵ0123456789ABCDEFNODEZERO';
-
 function drawMatrixRain() {
-  matCtx.fillStyle = 'rgba(0,10,0,0.05)';
-  matCtx.fillRect(0, 0, W, H);
-  matCtx.fillStyle = '#00FF41';
-  matCtx.font = '14px Share Tech Mono';
-  for (let i = 0; i < matDrops.length; i++) {
-    const char = matChars[Math.floor(Math.random() * matChars.length)];
-    matCtx.fillText(char, i * 16, matDrops[i] * 16);
-    if (matDrops[i] * 16 > H && Math.random() > 0.975) matDrops[i] = 0;
-    matDrops[i]++;
-  }
+matCtx.fillStyle = 'rgba(0,10,0,0.05)';
+matCtx.fillRect(0, 0, W, H);
+matCtx.fillStyle = '#00FF41';
+matCtx.font = '14px Share Tech Mono';
+for (let i = 0; i < matDrops.length; i++) {
+const char = matChars[Math.floor(Math.random() * matChars.length)];
+matCtx.fillText(char, i * 16, matDrops[i] * 16);
+if (matDrops[i] * 16 > H && Math.random() > 0.975) matDrops[i] = 0;
+matDrops[i]++;
+}
 }
 setInterval(drawMatrixRain, 50);
-
-// ── MINIMAP ───────────────────────────────────────────────────
 const mmCanvas = document.getElementById('minimap-canvas');
 const mmCtx = mmCanvas.getContext('2d');
-
-// ── GAME STATE ────────────────────────────────────────────────
-let gameState = 'cinematic'; // cinematic | menu | playing | dead | win | boss | dream
+let gameState = 'cinematic';
 let score = 0;
-let floor = 1;              // Current floor number (1-4, then boss)
+let floor = 1;
 let playerHP = 100;
 let kills = 0;
 let totalKills = 0;
 let frameCount = 0;
 let waveEnemyCount = 0;
 let transitioning = false;
-let bossArenaRadius = 320; // enforced during boss fight
-let corruptFound = false;    // Easter egg: corrupted file sequence
-let idSeqBuffer  = '';       // tracks typed characters for employee ID egg
-let idSeqTimer   = 0;        // clears buffer after inactivity
+let bossArenaRadius = 320;
+let corruptFound = false;
+let idSeqBuffer  = '';
+let idSeqTimer   = 0;
 let secretAbilityFound = false;
-let chaosMode    = false;    // Konami code easter egg — enemies turn friendly
-let decoyMesh    = null;     // GHOST ability decoy clone
+let chaosMode    = false;
+let decoyMesh    = null;
 let decoyLight   = null;
 let decoyPos     = { x: 0, z: 0 };
-let decoyTimer   = 0;        // frames remaining for active decoy
-let ghostActive  = false;    // player is invisible during ghost
-
-// Input state
+let decoyTimer   = 0;
+let ghostActive  = false;
 const keys = {};
 let shootCooldown = 0;
-
-// Cooldowns for abilities (in frames, 60fps)
 const COOLDOWNS = { q: 360, e: 120, r: 480, f: 300 };
 const abCooldowns = { q: 0, e: 0, r: 0, f: 0 };
 const abActive   = { q: false, e: false, r: false, f: false };
-
-// Game object arrays
-let floorTiles    = [];  // The floor geometry
-let wallMeshes    = [];  // Wall geometry
-let enemies       = [];  // Active enemies
-let bossBullets   = [];  // Boss projectiles
-let bossClones    = [];  // Boss clone enemies
-let bullets       = [];  // Player bullets
-let particles     = [];  // Visual particles
-let hivelines     = [];  // Hive-mind connection lines (Locked & Linked)
-let lightPulses   = [];  // Light path rings
+let floorTiles    = [];
+let wallMeshes    = [];
+let enemies       = [];
+let bossBullets   = [];
+let bossClones    = [];
+let bullets       = [];
+let particles     = [];
+let hivelines     = [];
+let lightPulses   = [];
 let exitMesh      = null;
 let playerMesh    = null;
-let playerPos     = { x: 0, y: 0, z: 0 }; // track separately for logic
+let playerPos     = { x: 0, y: 0, z: 0 };
 let exitPos       = { x: 0, z: 0 };
-let secretTerminal = null; // Easter egg terminal
+let secretTerminal = null;
 let secretFound   = false;
-let bossObj       = null;  // Boss enemy object
+let bossObj       = null;
 let bossPhase     = 0;
 let bossHP        = 0;
 let bossMaxHP     = 0;
-let gridMap       = [];    // 2D array: 0=floor, 1=wall, 2=exit, 3=terminal
-
-// Konami code tracker
+let gridMap       = [];
 const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
 let konamiIdx = 0;
-
-// ── GEOMETRY & MATERIAL FACTORIES ────────────────────────────
-// We create materials fresh each time — avoids sharing state
-
 function makeBox(w, h, d, color, emissive = 0x000000) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshLambertMaterial({
-    color, emissive, emissiveIntensity: 0.4,
-    transparent: true, opacity: 0.95
-  });
-  return new THREE.Mesh(geo, mat);
+const geo = new THREE.BoxGeometry(w, h, d);
+const mat = new THREE.MeshLambertMaterial({
+color, emissive, emissiveIntensity: 0.4,
+transparent: true, opacity: 0.95
+});
+return new THREE.Mesh(geo, mat);
 }
-
 function makeWireBox(w, h, d, color) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.6 });
-  return new THREE.Mesh(geo, mat);
+const geo = new THREE.BoxGeometry(w, h, d);
+const mat = new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.6 });
+return new THREE.Mesh(geo, mat);
 }
-
 function makeLine(x1, y1, z1, x2, y2, z2, color, opacity = 1) {
-  const pts = [new THREE.Vector3(x1,y1,z1), new THREE.Vector3(x2,y2,z2)];
-  const geo = new THREE.BufferGeometry().setFromPoints(pts);
-  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
-  return new THREE.Line(geo, mat);
+const pts = [new THREE.Vector3(x1,y1,z1), new THREE.Vector3(x2,y2,z2)];
+const geo = new THREE.BufferGeometry().setFromPoints(pts);
+const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+return new THREE.Line(geo, mat);
 }
-
-// ── FLOOR GENERATOR (Fixed layouts — only Architect modifies them) ──
-// Each floor has a hand-crafted fixed layout.
-// The Architect enemy is the ONLY thing that can change the layout during gameplay.
-
-// Seeded pseudo-random number generator for consistent cosmetic details
 let _seed = 12345;
 function seededRandom() {
-  _seed = (_seed * 16807 + 0) % 2147483647;
-  return (_seed - 1) / 2147483646;
+_seed = (_seed * 16807 + 0) % 2147483647;
+return (_seed - 1) / 2147483646;
 }
-
-// Fixed grid layouts for each floor (12 rows × 15 cols)
-// 0 = floor, 1 = wall, 2 = exit, 3 = secret terminal
 const FIXED_LAYOUTS = {
-  // Floor 1: Open office — pillars only near outer edges
-  1: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
-  // Floor 2: A few obstacles near the edges only
-  2: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
-  // Floor 3: Wide arena — Architect appears, blocks at far edges
-  3: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
-  // Floor 4: Light cover at edges — secret terminal in far corner
-  4: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
-  // Floor 5+: Final stretch — sparse cover at far edges
-  5: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
+1: [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+2: [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+3: [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,2,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+4: [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
+5: [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,3,0,0,0,0,0,0,0,0,0,0,0,2,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+],
 };
-
+function disposeNode(node) {
+  if (node.geometry) node.geometry.dispose();
+  if (node.material) {
+    if (Array.isArray(node.material)) node.material.forEach(m=>m.dispose());
+    else node.material.dispose();
+  }
+}
 function generateFloor(floorNum) {
-  // Clear previous floor objects
-  floorTiles.forEach(m => scene.remove(m));
-  wallMeshes.forEach(m => scene.remove(m));
-  if (exitMesh) scene.remove(exitMesh);
-  if (secretTerminal) scene.remove(secretTerminal);
+  floorTiles.forEach(m => { scene.remove(m); disposeNode(m); });
+  wallMeshes.forEach(m => { scene.remove(m); disposeNode(m); });
+  if (exitMesh) { scene.remove(exitMesh); disposeNode(exitMesh); }
+  if (secretTerminal) { scene.remove(secretTerminal); disposeNode(secretTerminal); }
   floorTiles = []; wallMeshes = [];
   exitMesh = null; secretTerminal = null;
-
-  // Reset seeded RNG for consistent cosmetic details per floor
-  _seed = floorNum * 7919 + 12345;
-
-  // Use fixed layout — pick layout by floor, cycle if beyond 5
-  const layoutKey = Math.min(floorNum, 5);
-  const fixedLayout = FIXED_LAYOUTS[layoutKey];
-
-  // Deep copy the fixed layout into gridMap
-  gridMap = fixedLayout.map(row => [...row]);
-
-  // If floor >= 4 and secret not found, ensure terminal is placed
-  // (layouts 4 and 5 already have cell value 3 baked in)
-  // If secret already found, remove the terminal marker
-  if (secretFound) {
-    for (let z = 0; z < GRID_H; z++) {
-      for (let x = 0; x < GRID_W; x++) {
-        if (gridMap[z][x] === 3) gridMap[z][x] = 0;
-      }
-    }
-  }
-  // For floors < 4, also clear any terminal markers
-  if (floorNum < 4) {
-    for (let z = 0; z < GRID_H; z++) {
-      for (let x = 0; x < GRID_W; x++) {
-        if (gridMap[z][x] === 3) gridMap[z][x] = 0;
-      }
-    }
-  }
-
-  // Find exit position from the layout
-  for (let z = 0; z < GRID_H; z++) {
-    for (let x = 0; x < GRID_W; x++) {
-      if (gridMap[z][x] === 2) {
-        exitPos = tileToWorld(x, z);
-      }
-    }
-  }
-
-  // Build geometry from grid
-  const offX = -(GRID_W * TILE) / 2;
-  const offZ = -(GRID_H * TILE) / 2;
-
-  for (let z = 0; z < GRID_H; z++) {
-    for (let x = 0; x < GRID_W; x++) {
-      const cell = gridMap[z][x];
-      const wx = offX + x * TILE + TILE/2;
-      const wz = offZ + z * TILE + TILE/2;
-
-      if (cell === 1) {
-        // Wall — cubicle partition with blue Tron glow
-        // Half-height walls to look like cubicle dividers
-        const wallH = (x % 3 === 0 || z % 3 === 0) ? TILE*0.8 : TILE*0.5;
-        const wall = makeBox(TILE-2, wallH, TILE-2, C_WALL, C_BLUE);
-        wall.position.set(wx, wallH/2, wz);
-        scene.add(wall);
-        wallMeshes.push(wall);
-        const wireWall = makeWireBox(TILE, wallH, TILE, C_BLUE);
-        wireWall.position.set(wx, wallH/2, wz);
-        scene.add(wireWall);
-        wallMeshes.push(wireWall);
-
-      } else {
-        // Floor tile — dark office carpet with grid lines
-        const floorMesh = makeBox(TILE-1, 2, TILE-1, C_FLOOR, 0x001133);
-        floorMesh.position.set(wx, 0, wz);
-        scene.add(floorMesh);
-        floorTiles.push(floorMesh);
-
-        // Tron grid lines on floor
-        const gridLine1 = makeLine(wx-TILE/2, 2, wz, wx+TILE/2, 2, wz, C_BLUE, 0.12);
-        const gridLine2 = makeLine(wx, 2, wz-TILE/2, wx, 2, wz+TILE/2, C_BLUE, 0.12);
-        scene.add(gridLine1); scene.add(gridLine2);
-        floorTiles.push(gridLine1); floorTiles.push(gridLine2);
-
-        // Spawn office furniture on some open tiles (every 3rd tile roughly)
-        // This makes it look like a real office with workstations
-        const hasFurniture = cell === 0 && (x + z) % 3 === 0;
-        if (hasFurniture) {
-          // Desk — flat wide box
-          const desk = makeBox(TILE*0.75, 6, TILE*0.45, 0x001a2a, C_BLUE);
-          desk.position.set(wx, 5, wz - TILE*0.1);
-          scene.add(desk); floorTiles.push(desk);
-
-          // Monitor — thin tall rectangle on desk
-          const monitor = makeBox(TILE*0.35, 18, 3, 0x000d1a, C_BLUE);
-          monitor.position.set(wx, 16, wz - TILE*0.18);
-          scene.add(monitor); floorTiles.push(monitor);
-
-          // Screen glow on monitor face
-          const screen = makeBox(TILE*0.28, 13, 1, 0x002244, C_BLUE);
-          screen.position.set(wx, 16, wz - TILE*0.19);
-          scene.add(screen); floorTiles.push(screen);
-
-          // Glowing code lines on screen (thin boxes)
-          for(let l=0;l<3;l++){
-            const codeLine = makeBox(TILE*0.15*(0.5+seededRandom()*0.5), 1.5, 0.5, C_BLUE, C_BLUE);
-            codeLine.position.set(wx - TILE*0.05 + seededRandom()*TILE*0.1, 11+l*4, wz-TILE*0.195);
-            scene.add(codeLine); floorTiles.push(codeLine);
-          }
-
-          // Chair — small box behind desk
-          const chair = makeBox(TILE*0.22, 8, TILE*0.22, 0x001122, C_BLUE);
-          chair.position.set(wx, 6, wz + TILE*0.2);
-          scene.add(chair); floorTiles.push(chair);
-
-          // Ambient light from monitor — adds to "Light the Path" theme
-          const deskLight = new THREE.PointLight(C_BLUE, 0.4, 60);
-          deskLight.position.set(wx, 30, wz);
-          scene.add(deskLight); floorTiles.push(deskLight);
-        }
-
-        if (cell === 2) {
-          // Exit — glowing green platform with arrow
-          exitMesh = makeBox(TILE-8, 4, TILE-8, C_EXIT, C_EXIT);
-          exitMesh.position.set(wx, 3, wz);
-          scene.add(exitMesh);
-          const exitLight = new THREE.PointLight(C_GREEN, 2, 120);
-          exitLight.position.set(wx, 20, wz);
-          scene.add(exitLight);
-          floorTiles.push(exitLight);
-          // Exit sign — tall glowing pillar
-          const exitSign = makeBox(8, 40, 8, C_EXIT, C_EXIT);
-          exitSign.position.set(wx, 20, wz);
-          scene.add(exitSign); floorTiles.push(exitSign);
-        }
-
-        if (cell === 3 && !secretFound) {
-          // Secret terminal — distinctive glowing monitor, slightly different green
-          secretTerminal = makeBox(18, 28, 5, 0x003300, C_GREEN);
-          secretTerminal.position.set(wx, 16, wz);
-          scene.add(secretTerminal);
-          // Pulsing green light
-          const termLight = new THREE.PointLight(C_GREEN, 2, 80);
-          termLight.position.set(wx, 40, wz);
-          scene.add(termLight);
-          floorTiles.push(termLight);
-          // Flashing wire overlay so it stands out
-          const termWire = makeWireBox(22, 32, 8, C_GREEN);
-          termWire.position.set(wx, 16, wz);
-          scene.add(termWire); floorTiles.push(termWire);
-        }
-      }
-    }
-  }
-
-  // Player starts at center
-  const startWorld = tileToWorld(Math.floor(GRID_W/2), Math.floor(GRID_H/2));
-  playerPos.x = startWorld.x;
-  playerPos.z = startWorld.z;
-  playerPos.y = 16;
-  if (playerMesh) {
-    playerMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
-  }
-  playerLight.position.set(playerPos.x, 50, playerPos.z);
-
-  // Spawn enemies for this floor
-  spawnEnemies(floorNum);
-  kills = 0;
-  updateHUD();
-  updateMinimap();
+_seed = floorNum * 7919 + 12345;
+const layoutKey = Math.min(floorNum, 5);
+const fixedLayout = FIXED_LAYOUTS[layoutKey];
+gridMap = fixedLayout.map(row => [...row]);
+if (secretFound) {
+for (let z = 0; z < GRID_H; z++) {
+for (let x = 0; x < GRID_W; x++) {
+if (gridMap[z][x] === 3) gridMap[z][x] = 0;
 }
-
-// Return a random open (non-wall) tile's world coordinates
+}
+}
+if (floorNum < 4) {
+for (let z = 0; z < GRID_H; z++) {
+for (let x = 0; x < GRID_W; x++) {
+if (gridMap[z][x] === 3) gridMap[z][x] = 0;
+}
+}
+}
+for (let z = 0; z < GRID_H; z++) {
+for (let x = 0; x < GRID_W; x++) {
+if (gridMap[z][x] === 2) {
+exitPos = tileToWorld(x, z);
+}
+}
+}
+const offX = -(GRID_W * TILE) / 2;
+const offZ = -(GRID_H * TILE) / 2;
+for (let z = 0; z < GRID_H; z++) {
+for (let x = 0; x < GRID_W; x++) {
+const cell = gridMap[z][x];
+const wx = offX + x * TILE + TILE/2;
+const wz = offZ + z * TILE + TILE/2;
+if (cell === 1) {
+const wallH = (x % 3 === 0 || z % 3 === 0) ? TILE*0.8 : TILE*0.5;
+const wall = makeBox(TILE-2, wallH, TILE-2, C_WALL, C_BLUE);
+wall.position.set(wx, wallH/2, wz);
+scene.add(wall);
+wallMeshes.push(wall);
+const wireWall = makeWireBox(TILE, wallH, TILE, C_BLUE);
+wireWall.position.set(wx, wallH/2, wz);
+scene.add(wireWall);
+wallMeshes.push(wireWall);
+} else {
+const floorMesh = makeBox(TILE-1, 2, TILE-1, C_FLOOR, 0x001133);
+floorMesh.position.set(wx, 0, wz);
+scene.add(floorMesh);
+floorTiles.push(floorMesh);
+const gridLine1 = makeLine(wx-TILE/2, 2, wz, wx+TILE/2, 2, wz, C_BLUE, 0.12);
+const gridLine2 = makeLine(wx, 2, wz-TILE/2, wx, 2, wz+TILE/2, C_BLUE, 0.12);
+scene.add(gridLine1); scene.add(gridLine2);
+floorTiles.push(gridLine1); floorTiles.push(gridLine2);
+const hasFurniture = cell === 0 && (x + z) % 3 === 0;
+if (hasFurniture) {
+const desk = makeBox(TILE*0.75, 6, TILE*0.45, 0x001a2a, C_BLUE);
+desk.position.set(wx, 5, wz - TILE*0.1);
+scene.add(desk); floorTiles.push(desk);
+const monitor = makeBox(TILE*0.35, 18, 3, 0x000d1a, C_BLUE);
+monitor.position.set(wx, 16, wz - TILE*0.18);
+scene.add(monitor); floorTiles.push(monitor);
+const screen = makeBox(TILE*0.28, 13, 1, 0x002244, C_BLUE);
+screen.position.set(wx, 16, wz - TILE*0.19);
+scene.add(screen); floorTiles.push(screen);
+for(let l=0;l<3;l++){
+const codeLine = makeBox(TILE*0.15*(0.5+seededRandom()*0.5), 1.5, 0.5, C_BLUE, C_BLUE);
+codeLine.position.set(wx - TILE*0.05 + seededRandom()*TILE*0.1, 11+l*4, wz-TILE*0.195);
+scene.add(codeLine); floorTiles.push(codeLine);
+}
+const chair = makeBox(TILE*0.22, 8, TILE*0.22, 0x001122, C_BLUE);
+chair.position.set(wx, 6, wz + TILE*0.2);
+scene.add(chair); floorTiles.push(chair);
+const deskLight = new THREE.PointLight(C_BLUE, 0.4, 60);
+deskLight.position.set(wx, 30, wz);
+scene.add(deskLight); floorTiles.push(deskLight);
+}
+if (cell === 2) {
+exitMesh = makeBox(TILE-8, 4, TILE-8, C_EXIT, C_EXIT);
+exitMesh.position.set(wx, 3, wz);
+scene.add(exitMesh);
+const exitLight = new THREE.PointLight(C_GREEN, 2, 120);
+exitLight.position.set(wx, 20, wz);
+scene.add(exitLight);
+floorTiles.push(exitLight);
+const exitSign = makeBox(8, 40, 8, C_EXIT, C_EXIT);
+exitSign.position.set(wx, 20, wz);
+scene.add(exitSign); floorTiles.push(exitSign);
+}
+if (cell === 3 && !secretFound) {
+secretTerminal = makeBox(18, 28, 5, 0x003300, C_GREEN);
+secretTerminal.position.set(wx, 16, wz);
+scene.add(secretTerminal);
+const termLight = new THREE.PointLight(C_GREEN, 2, 80);
+termLight.position.set(wx, 40, wz);
+scene.add(termLight);
+floorTiles.push(termLight);
+const termWire = makeWireBox(22, 32, 8, C_GREEN);
+termWire.position.set(wx, 16, wz);
+scene.add(termWire); floorTiles.push(termWire);
+}
+}
+}
+}
+const startWorld = tileToWorld(Math.floor(GRID_W/2), Math.floor(GRID_H/2));
+playerPos.x = startWorld.x;
+playerPos.z = startWorld.z;
+playerPos.y = 16;
+if (playerMesh) {
+playerMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
+}
+playerLight.position.set(playerPos.x, 50, playerPos.z);
+spawnEnemies(floorNum);
+kills = 0;
+updateHUD();
+updateMinimap();
+}
 function randomOpenTile() {
-  const open = [];
-  for (let z=1;z<GRID_H-1;z++) for(let x=1;x<GRID_W-1;x++) {
-    if(gridMap[z]&&gridMap[z][x]===0) open.push({x,z});
-  }
-  const pick = open[Math.floor(Math.random()*open.length)];
-  return tileToWorld(pick.x, pick.z);
+const open = [];
+for (let z=1;z<GRID_H-1;z++) for(let x=1;x<GRID_W-1;x++) {
+if(gridMap[z]&&gridMap[z][x]===0) open.push({x,z});
 }
-
-// Convert tile grid coordinates to world 3D coordinates
+const pick = open[Math.floor(Math.random()*open.length)];
+return tileToWorld(pick.x, pick.z);
+}
 function tileToWorld(tx, tz) {
-  const offX = -(GRID_W * TILE) / 2;
-  const offZ = -(GRID_H * TILE) / 2;
-  return { x: offX + tx * TILE + TILE/2, z: offZ + tz * TILE + TILE/2 };
+const offX = -(GRID_W * TILE) / 2;
+const offZ = -(GRID_H * TILE) / 2;
+return { x: offX + tx * TILE + TILE/2, z: offZ + tz * TILE + TILE/2 };
 }
-
-// ── ENEMY SYSTEM ──────────────────────────────────────────────
-// 4 enemy types, each with unique AI behaviour
-// They're all "linked" via the hive mind (Locked & Linked theme)
-
 function spawnEnemies(floorNum) {
-  enemies.forEach(e => { scene.remove(e.mesh); if(e.light) scene.remove(e.light); });
-  enemies = [];
-
-  const count = 3 + floorNum * 2; // More enemies each floor
+enemies.forEach(e => { scene.remove(e.mesh); if(e.light) scene.remove(e.light); });
+enemies = [];
+  let count = 3 + floorNum * 2;
+  if(floorNum === 3) count += 6; 
+  if(floorNum === 4) count += 10; 
   waveEnemyCount = count;
-  let placed = 0;
-  let attempts = 0;
-
-  while (placed < count && attempts < 500) {
-    attempts++;
-    const tx = 1 + Math.floor(seededRandom() * (GRID_W-2));
-    const tz = 1 + Math.floor(seededRandom() * (GRID_H-2));
-    if (gridMap[tz] && gridMap[tz][tx] !== 0) continue;
-
-    const world = tileToWorld(tx, tz);
-    // Don't spawn too close to player start
-    const dx = world.x - playerPos.x, dz = world.z - playerPos.z;
-    if (Math.sqrt(dx*dx+dz*dz) < 180) continue;
-
-    // Choose enemy type based on floor
-    const typeRoll = seededRandom();
-    let type;
-    if (floorNum <= 2) {
-      // Floors 1-2: only drones, managers, enforcers — no Architect yet
-      if (typeRoll < 0.45) type = 'drone';
-      else if (typeRoll < 0.75) type = 'manager';
-      else type = 'enforcer';
-    } else {
-      // Floors 3-4: Architect introduced — starts reshaping the grid
-      if (typeRoll < 0.35) type = 'drone';
-      else if (typeRoll < 0.58) type = 'manager';
-      else if (typeRoll < 0.78) type = 'enforcer';
-      else type = 'architect';
-    }
-
-    const enemy = createEnemy(type, world.x, world.z, floorNum);
-    enemies.push(enemy);
-    placed++;
-  }
+let placed = 0;
+let attempts = 0;
+while (placed < count && attempts < 500) {
+attempts++;
+const tx = 1 + Math.floor(seededRandom() * (GRID_W-2));
+const tz = 1 + Math.floor(seededRandom() * (GRID_H-2));
+if (gridMap[tz] && gridMap[tz][tx] !== 0) continue;
+const world = tileToWorld(tx, tz);
+const dx = world.x - playerPos.x, dz = world.z - playerPos.z;
+if (Math.sqrt(dx*dx+dz*dz) < 180) continue;
+const typeRoll = seededRandom();
+let type;
+if (floorNum <= 2) {
+if (typeRoll < 0.45) type = 'drone';
+else if (typeRoll < 0.75) type = 'manager';
+else type = 'enforcer';
+} else {
+if (typeRoll < 0.35) type = 'drone';
+else if (typeRoll < 0.58) type = 'manager';
+else if (typeRoll < 0.78) type = 'enforcer';
+else type = 'architect';
 }
-
+const enemy = createEnemy(type, world.x, world.z, floorNum);
+enemies.push(enemy);
+placed++;
+}
+}
 function createEnemy(type, wx, wz, floorNum) {
-  const configs = {
-    drone:    { color: 0x884444, emissive: 0x441111, size: 14, hp: 2,  speed: 1.2, score: 10 },
-    manager:  { color: 0xAA6600, emissive: 0x553300, size: 18, hp: 3,  speed: 1.6, score: 20 },
-    enforcer: { color: 0xCC2244, emissive: 0x661122, size: 16, hp: 4,  speed: 2.2, score: 35 },
-    architect:{ color: 0x662288, emissive: 0x331144, size: 22, hp: 6,  speed: 1.0, score: 50 },
-  };
-  const cfg = configs[type];
-
-  // Shapes literally match enemy names:
-  // DRONE     = flat disk / flying saucer (CylinderGeometry, very flat = drone shape)
-  // MANAGER   = tall thin box in a suit (BoxGeometry tall + thin = office manager silhouette)
-  // ENFORCER  = sharp blade / shield (TetrahedronGeometry = weapon-like, aggressive)
-  // ARCHITECT = open wireframe cube (BoxGeometry wireframe = blueprint/structure)
-  let geo;
-  if (type === 'drone')
-    geo = new THREE.CylinderGeometry(cfg.size*1.4, cfg.size*1.0, cfg.size*0.4, 12); // flat disk = drone
-  else if (type === 'manager')
-    geo = new THREE.BoxGeometry(cfg.size*0.9, cfg.size*3.2, cfg.size*0.9); // tall thin = suited manager
-  else if (type === 'enforcer')
-    geo = new THREE.TetrahedronGeometry(cfg.size*1.3); // sharp tetrahedron = enforcer blade
-  else
-    geo = new THREE.BoxGeometry(cfg.size*2, cfg.size*2, cfg.size*2); // cube frame = architect blueprint
-
-  const mat = new THREE.MeshLambertMaterial({
-    color: cfg.color, emissive: cfg.emissive, emissiveIntensity: 0.6,
-    transparent: true, opacity: type==='architect'?0.3:0.9,
-    wireframe: false
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(wx, cfg.size*1.2, wz);
-  scene.add(mesh);
-
-  // All enemies get a wireframe overlay for the Tron look
-  // Architect is ONLY wireframe (blueprint style)
-  const wireMat = new THREE.MeshBasicMaterial({
-    color: type==='drone'?C_BLUE:type==='manager'?0xFFAA00:type==='enforcer'?C_RED:C_GREEN,
-    wireframe: true, transparent: true,
-    opacity: type==='architect'?0.9:0.4
-  });
-  const wireMesh = new THREE.Mesh(geo.clone(), wireMat);
-  mesh.add(wireMesh); // attach wire as child so it moves with parent
-
-  // Enemy light — contributes to "Light the Path" — each enemy glows
-  const light = new THREE.PointLight(cfg.emissive, 0.8, 80);
-  light.position.set(wx, 40, wz);
-  scene.add(light);
-
-  // Patrol path for drones/managers (Pattern Breaker theme)
-  // They follow repeating patterns — player must observe and break them
-  const patrolRadius = 60 + seededRandom() * 60;
-  const patrolSpeed = seededRandom() * Math.PI * 2;
-
-  return {
-    mesh, light, type,
-    hp: cfg.hp + Math.floor(floorNum/2),
-    maxHP: cfg.hp + Math.floor(floorNum/2),
-    speed: cfg.speed * (1 + floorNum * 0.08),
-    score: cfg.score,
-    size: cfg.size,
-    chained: false, chainTimer: 0,
-    alertTimer: 0,   // How long since last saw player
-    state: 'patrol', // patrol | chase | flank | guard
-    patrolAngle: patrolSpeed,
-    patrolRadius,
-    patrolCenterX: wx,
-    patrolCenterZ: wz,
-    stunTimer: 0,    // GLITCH ability stuns enemies
-    jammTimer: 0,    // JAM ability disrupts hive-link
-    glitchVis: 0,    // Visual glitch intensity
-  };
+const configs = {
+    drone:    { color: 0x884444, emissive: 0x441111, size: 14, hp: 2,  speed: 1.1, score: 10 },
+    manager:  { color: 0xAA6600, emissive: 0x553300, size: 18, hp: 3,  speed: 1.5, score: 20 },
+    enforcer: { color: 0xCC2244, emissive: 0x661122, size: 16, hp: 4,  speed: 2.1, score: 35 },
+    architect:{ color: 0x662288, emissive: 0x331144, size: 22, hp: 6,  speed: 0.9, score: 50 },
+};
+const cfg = configs[type];
+let geo;
+if (type === 'drone')
+geo = new THREE.CylinderGeometry(cfg.size*1.4, cfg.size*1.0, cfg.size*0.4, 12);
+else if (type === 'manager')
+geo = new THREE.BoxGeometry(cfg.size*0.9, cfg.size*3.2, cfg.size*0.9);
+else if (type === 'enforcer')
+geo = new THREE.TetrahedronGeometry(cfg.size*1.3);
+else
+geo = new THREE.BoxGeometry(cfg.size*2, cfg.size*2, cfg.size*2);
+const mat = new THREE.MeshLambertMaterial({
+color: cfg.color, emissive: cfg.emissive, emissiveIntensity: 0.6,
+transparent: true, opacity: type==='architect'?0.3:0.9,
+wireframe: false
+});
+const mesh = new THREE.Mesh(geo, mat);
+mesh.position.set(wx, cfg.size*1.2, wz);
+scene.add(mesh);
+const wireMat = new THREE.MeshBasicMaterial({
+color: type==='drone'?C_BLUE:type==='manager'?0xFFAA00:type==='enforcer'?C_RED:C_GREEN,
+wireframe: true, transparent: true,
+opacity: type==='architect'?0.9:0.4
+});
+const wireMesh = new THREE.Mesh(geo.clone(), wireMat);
+mesh.add(wireMesh);
+const light = new THREE.PointLight(cfg.emissive, 0.8, 80);
+light.position.set(wx, 40, wz);
+scene.add(light);
+const patrolRadius = 60 + seededRandom() * 60;
+const patrolSpeed = seededRandom() * Math.PI * 2;
+return {
+mesh, light, type,
+hp: cfg.hp + Math.floor(floorNum/2),
+maxHP: cfg.hp + Math.floor(floorNum/2),
+speed: cfg.speed * (1 + floorNum * 0.08),
+score: cfg.score,
+size: cfg.size,
+chained: false, chainTimer: 0,
+alertTimer: 0,
+state: 'patrol',
+patrolAngle: patrolSpeed,
+patrolRadius,
+patrolCenterX: wx,
+patrolCenterZ: wz,
+stunTimer: 0,
+jammTimer: 0,
+glitchVis: 0,
+};
 }
-
-// ── ENEMY AI ─────────────────────────────────────────────────
-// Each enemy type has unique behaviour — this is what makes it impressive
-
 function updateEnemies() {
-  // First update hive-mind links (Locked & Linked)
-  // Remove old lines
-  hivelines.forEach(l => scene.remove(l));
-  hivelines = [];
-
-  // Draw lines between nearby enemies — the hive network
-  for (let i = 0; i < enemies.length; i++) {
-    for (let j = i+1; j < enemies.length; j++) {
-      const a = enemies[i], b = enemies[j];
-      if (a.jammTimer > 0 || b.jammTimer > 0) continue; // JAM breaks links
-      const dx = a.mesh.position.x - b.mesh.position.x;
-      const dz = a.mesh.position.z - b.mesh.position.z;
-      const dist = Math.sqrt(dx*dx+dz*dz);
-      if (dist < CHAIN_RADIUS) {
-        const line = makeLine(
-          a.mesh.position.x, a.mesh.position.y, a.mesh.position.z,
-          b.mesh.position.x, b.mesh.position.y, b.mesh.position.z,
-          C_BLUE, 0.25 * (1 - dist/CHAIN_RADIUS)
-        );
-        scene.add(line);
-        hivelines.push(line);
-
-        // Hive mind: if one enemy sees player, nearby linked ones also alert
-        if (a.state === 'chase' && b.state === 'patrol' && b.stunTimer <= 0) {
-          b.state = 'chase'; b.alertTimer = 120;
-        }
-        if (b.state === 'chase' && a.state === 'patrol' && a.stunTimer <= 0) {
-          a.state = 'chase'; a.alertTimer = 120;
-        }
-      }
-    }
-  }
-
-  // Update each enemy
-  for (let i = enemies.length-1; i >= 0; i--) {
-    const e = enemies[i];
-    if (!e.mesh) continue;
-
-    // Cooldown timers
-    if (e.stunTimer > 0) { e.stunTimer--; continue; } // Stunned — skip AI
-    if (e.jammTimer > 0) e.jammTimer--;
-    if (e.chainTimer > 0) e.chainTimer--;
-
-    // When ghost is active, enemies target the decoy instead of the real player
-    const px = ghostActive ? decoyPos.x : playerPos.x;
-    const pz = ghostActive ? decoyPos.z : playerPos.z;
-    const ex = e.mesh.position.x, ez = e.mesh.position.z;
-    const distToPlayer = Math.sqrt((px-ex)**2 + (pz-ez)**2);
-
-    // Line of sight check (simplified — just distance for now)
-    const playerVisible = distToPlayer < 220;
-
-    // ── AI STATE MACHINE ──
-    // Each enemy type behaves differently — this is the "Pattern" system
-
-    // Chaos mode: enemies wander freely across the map
-    if (chaosMode) {
-      e.state = 'patrol';
-      // Pick a random open tile as a waypoint if we don't have one or reached it
-      if (!e.chaosTarget) e.chaosTarget = randomOpenTile();
-      const ctx = e.chaosTarget.x, ctz = e.chaosTarget.z;
-      const dtx = ctx - e.mesh.position.x, dtz = ctz - e.mesh.position.z;
-      if (Math.sqrt(dtx*dtx + dtz*dtz) < 20) {
-        e.chaosTarget = randomOpenTile(); // pick a new waypoint
-      }
-      moveEnemyToward(e, ctx, ctz);
-    } else if (e.type === 'drone') {
-      // Drone: roams freely, chases when sees player
-      if (playerVisible) {
-        e.state = 'chase'; e.alertTimer = 80;
-      } else if (e.alertTimer > 0) {
-        e.alertTimer--;
-      } else {
-        e.state = 'patrol';
-      }
-
-      if (e.state === 'patrol') {
-        // Roam freely across the map via random waypoints
-        if (!e.roamTarget) e.roamTarget = randomOpenTile();
-        const rtx = e.roamTarget.x - e.mesh.position.x;
-        const rtz = e.roamTarget.z - e.mesh.position.z;
-        if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-        moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-      } else {
-        moveEnemyToward(e, px, pz);
-      }
-
-    } else if (e.type === 'manager') {
-      // Manager: roams freely, flanks player when spotted
-      if (playerVisible) { e.state = 'flank'; e.alertTimer = 100; }
-      else if (e.alertTimer > 0) e.alertTimer--;
-      else e.state = 'patrol';
-
-      if (e.state === 'patrol') {
-        // Roam freely across the map via random waypoints
-        if (!e.roamTarget) e.roamTarget = randomOpenTile();
-        const rtx = e.roamTarget.x - e.mesh.position.x;
-        const rtz = e.roamTarget.z - e.mesh.position.z;
-        if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-        moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-      } else {
-        // Flank: approach from the side, not directly
-        const flankAngle = Math.atan2(pz-ez, px-ex) + Math.PI/3;
-        const flankX = px + Math.cos(flankAngle) * 60;
-        const flankZ = pz + Math.sin(flankAngle) * 60;
-        moveEnemyToward(e, flankX, flankZ);
-      }
-
-    } else if (e.type === 'enforcer') {
-      // Enforcer: aggressive — always chases, no pattern to exploit
-      if (playerVisible || distToPlayer < 300) {
-        e.state = 'chase';
-      }
-      if (e.state === 'chase') {
-        moveEnemyToward(e, px, pz);
-      } else {
-        // Roam freely across the map via random waypoints
-        if (!e.roamTarget) e.roamTarget = randomOpenTile();
-        const rtx = e.roamTarget.x - e.mesh.position.x;
-        const rtz = e.roamTarget.z - e.mesh.position.z;
-        if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-        moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-      }
-
-    } else if (e.type === 'architect') {
-      // Architect: patrols slowly — reshapes walls on a STRICT cooldown
-      // Only triggers every 10 seconds (600 frames) per architect
-      // This keeps it threatening but not suffocating
-      e.patrolAngle += 0.006;
-      moveEnemyToward(e, px, pz);
-      if (!e.glitchCooldown) e.glitchCooldown = 300 + Math.floor(Math.random()*200);
-      e.glitchCooldown--;
-      if (e.glitchCooldown <= 0 && playerVisible) {
-        glitchWalls();
-        e.glitchCooldown = 500 + Math.floor(Math.random()*200); // reset — ~8-10 seconds
-      }
-    }
-
-    // Rotate enemy (visual)
-    e.mesh.rotation.y += 0.02;
-
-    // Chaos mode: all enemies turn on boss (easter egg)
-    if (chaosMode) {
-      e.mesh.material.color.set(C_GREEN);
-      e.mesh.material.emissive.set(C_GREEN);
-    }
-
-    // Update light position
-    if (e.light) {
-      e.light.position.x = e.mesh.position.x;
-      e.light.position.z = e.mesh.position.z;
-    }
-
-    // Collision with player — only damages every 45 frames per enemy
-    // Ghost mode: enemies can't hurt invisible player
-    if (!ghostActive && distToPlayer < e.size + 14 && frameCount%45===0) {
-      playerHP -= chaosMode ? 0 : 2;
-      triggerGlitch();
-      updateHUD();
-      if (playerHP <= 0) { endGame('dead'); return; }
-    }
-  }
+hivelines.forEach(l => scene.remove(l));
+hivelines = [];
+for (let i = 0; i < enemies.length; i++) {
+for (let j = i+1; j < enemies.length; j++) {
+const a = enemies[i], b = enemies[j];
+if (a.jammTimer > 0 || b.jammTimer > 0) continue;
+const dx = a.mesh.position.x - b.mesh.position.x;
+const dz = a.mesh.position.z - b.mesh.position.z;
+const dist = Math.sqrt(dx*dx+dz*dz);
+if (dist < CHAIN_RADIUS) {
+const line = makeLine(
+a.mesh.position.x, a.mesh.position.y, a.mesh.position.z,
+b.mesh.position.x, b.mesh.position.y, b.mesh.position.z,
+C_BLUE, 0.25 * (1 - dist/CHAIN_RADIUS)
+);
+scene.add(line);
+hivelines.push(line);
+if (a.state === 'chase' && b.state === 'patrol' && b.stunTimer <= 0) {
+b.state = 'chase'; b.alertTimer = 120;
 }
-
+if (b.state === 'chase' && a.state === 'patrol' && a.stunTimer <= 0) {
+a.state = 'chase'; a.alertTimer = 120;
+}
+}
+}
+}
+for (let i = enemies.length-1; i >= 0; i--) {
+const e = enemies[i];
+if (!e.mesh) continue;
+if (e.stunTimer > 0) { e.stunTimer--; continue; }
+if (e.jammTimer > 0) e.jammTimer--;
+if (e.chainTimer > 0) e.chainTimer--;
+const px = ghostActive ? decoyPos.x : playerPos.x;
+const pz = ghostActive ? decoyPos.z : playerPos.z;
+const ex = e.mesh.position.x, ez = e.mesh.position.z;
+const distToPlayer = Math.sqrt((px-ex)**2 + (pz-ez)**2);
+const playerVisible = distToPlayer < 220;
+if (chaosMode) {
+e.state = 'patrol';
+if (!e.chaosTarget) e.chaosTarget = randomOpenTile();
+const ctx = e.chaosTarget.x, ctz = e.chaosTarget.z;
+const dtx = ctx - e.mesh.position.x, dtz = ctz - e.mesh.position.z;
+if (Math.sqrt(dtx*dtx + dtz*dtz) < 20) {
+e.chaosTarget = randomOpenTile();
+}
+moveEnemyToward(e, ctx, ctz);
+} else if (e.type === 'drone') {
+if (playerVisible) {
+e.state = 'chase'; e.alertTimer = 80;
+} else if (e.alertTimer > 0) {
+e.alertTimer--;
+} else {
+e.state = 'patrol';
+}
+if (e.state === 'patrol') {
+if (!e.roamTarget) e.roamTarget = randomOpenTile();
+const rtx = e.roamTarget.x - e.mesh.position.x;
+const rtz = e.roamTarget.z - e.mesh.position.z;
+if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
+moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
+} else {
+moveEnemyToward(e, px, pz);
+}
+} else if (e.type === 'manager') {
+if (playerVisible) { e.state = 'flank'; e.alertTimer = 100; }
+else if (e.alertTimer > 0) e.alertTimer--;
+else e.state = 'patrol';
+if (e.state === 'patrol') {
+if (!e.roamTarget) e.roamTarget = randomOpenTile();
+const rtx = e.roamTarget.x - e.mesh.position.x;
+const rtz = e.roamTarget.z - e.mesh.position.z;
+if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
+moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
+} else {
+const flankAngle = Math.atan2(pz-ez, px-ex) + Math.PI/3;
+const flankX = px + Math.cos(flankAngle) * 60;
+const flankZ = pz + Math.sin(flankAngle) * 60;
+moveEnemyToward(e, flankX, flankZ);
+}
+} else if (e.type === 'enforcer') {
+if (playerVisible || distToPlayer < 300) {
+e.state = 'chase';
+}
+if (e.state === 'chase') {
+moveEnemyToward(e, px, pz);
+} else {
+if (!e.roamTarget) e.roamTarget = randomOpenTile();
+const rtx = e.roamTarget.x - e.mesh.position.x;
+const rtz = e.roamTarget.z - e.mesh.position.z;
+if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
+moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
+}
+} else if (e.type === 'architect') {
+e.patrolAngle += 0.006;
+moveEnemyToward(e, px, pz);
+if (!e.glitchCooldown) e.glitchCooldown = 300 + Math.floor(Math.random()*200);
+e.glitchCooldown--;
+if (e.glitchCooldown <= 0 && playerVisible) {
+glitchWalls();
+e.glitchCooldown = 500 + Math.floor(Math.random()*200);
+}
+}
+e.mesh.rotation.y += 0.02;
+if (chaosMode) {
+e.mesh.material.color.set(C_GREEN);
+e.mesh.material.emissive.set(C_GREEN);
+}
+if (e.light) {
+e.light.position.x = e.mesh.position.x;
+e.light.position.z = e.mesh.position.z;
+}
+  if (!ghostActive && distToPlayer < e.size + 14 && frameCount%45===0) {
+    playerHP -= chaosMode ? 0 : 1; // Decreased from 2 to 1 damage
+    triggerGlitch();
+    updateHUD();
+    if (playerHP <= 0) { endGame('dead'); return; }
+}
+}
+}
 function moveEnemyToward(e, tx, tz) {
-  const dx = tx - e.mesh.position.x;
-  const dz = tz - e.mesh.position.z;
-  const dist = Math.sqrt(dx*dx+dz*dz);
-  if (dist < 2) return;
-  const spd = e.speed * (chaosMode ? 0.3 : 1);
-  e.mesh.position.x += (dx/dist) * spd;
-  e.mesh.position.z += (dz/dist) * spd;
+const dx = tx - e.mesh.position.x;
+const dz = tz - e.mesh.position.z;
+const dist = Math.sqrt(dx*dx+dz*dz);
+if (dist < 2) return;
+const spd = e.speed * (chaosMode ? 0.3 : 1);
+e.mesh.position.x += (dx/dist) * spd;
+e.mesh.position.z += (dz/dist) * spd;
 }
-
-// Architect ability — randomly toggles some walls (reshapes maze)
 function glitchWalls() {
-  const openTiles = [];
-  for (let z=1;z<GRID_H-1;z++) for(let x=1;x<GRID_W-1;x++) {
-    if(gridMap[z][x]===0) {
-      const w = tileToWorld(x,z);
-      const pdx = w.x-playerPos.x, pdz = w.z-playerPos.z;
-      // 5-tile safe zone around player — never spawns right on top of you
-      const nearPlayer = Math.sqrt(pdx*pdx+pdz*pdz) < TILE*5;
-      if (!nearPlayer) openTiles.push({x,z,wx:w.x,wz:w.z});
-    }
-  }
-
-  // Sweet spot: need at least 20 open tiles to safely add walls
-  // This prevents the map from becoming completely impassable
-  if (openTiles.length < 20) return;
-
-  // Spawn 3 to 5 walls — enough to feel threatening without suffocating
-  const count = openTiles.length > 35 ? 3 + Math.floor(Math.random()*3) : 3;
-
-  for (let i=0;i<count;i++) {
-    if (openTiles.length < 20) break; // stop early if getting too tight
-    const idx = Math.floor(Math.random()*openTiles.length);
-    const t = openTiles.splice(idx,1)[0];
-    gridMap[t.z][t.x] = 1;
-
-    const wall = makeBox(TILE-4, TILE*1.2, TILE-4, 0x001a00, C_GREEN);
-    wall.position.set(t.wx, -TILE, t.wz);
-    scene.add(wall);
-    wallMeshes.push(wall);
-
-    // Animate rising — slightly faster than before for drama
-    let rise = -TILE;
-    const riseInterval = setInterval(() => {
-      rise += 6;
-      wall.position.y = rise;
-      if (rise >= TILE*0.6) {
-        wall.position.y = TILE*0.6;
-        clearInterval(riseInterval);
-      }
-    }, 18);
-
-    const wire = makeWireBox(TILE, TILE*1.2, TILE, C_GREEN);
-    wire.position.set(t.wx, TILE*0.6, t.wz);
-    scene.add(wire);
-    wallMeshes.push(wire);
-  }
-
-  showDangerNotif('⚠ ARCHITECT IS RESHAPING THE GRID');
-  showNotif('ARCHITECT — GRID RESHAPING', 2000);
-  updateMinimap();
+const openTiles = [];
+for (let z=1;z<GRID_H-1;z++) for(let x=1;x<GRID_W-1;x++) {
+if(gridMap[z][x]===0) {
+const w = tileToWorld(x,z);
+const pdx = w.x-playerPos.x, pdz = w.z-playerPos.z;
+const nearPlayer = Math.sqrt(pdx*pdx+pdz*pdz) < TILE*5;
+if (!nearPlayer) openTiles.push({x,z,wx:w.x,wz:w.z});
 }
-
-// ── BULLET SYSTEM ────────────────────────────────────────────
+}
+if (openTiles.length < 20) return;
+const count = openTiles.length > 35 ? 3 + Math.floor(Math.random()*3) : 3;
+for (let i=0;i<count;i++) {
+if (openTiles.length < 20) break;
+const idx = Math.floor(Math.random()*openTiles.length);
+const t = openTiles.splice(idx,1)[0];
+gridMap[t.z][t.x] = 1;
+const wall = makeBox(TILE-4, TILE*1.2, TILE-4, 0x001a00, C_GREEN);
+wall.position.set(t.wx, -TILE, t.wz);
+scene.add(wall);
+wallMeshes.push(wall);
+let rise = -TILE;
+const riseInterval = setInterval(() => {
+rise += 6;
+wall.position.y = rise;
+if (rise >= TILE*0.6) {
+wall.position.y = TILE*0.6;
+clearInterval(riseInterval);
+}
+}, 18);
+const wire = makeWireBox(TILE, TILE*1.2, TILE, C_GREEN);
+wire.position.set(t.wx, TILE*0.6, t.wz);
+scene.add(wire);
+wallMeshes.push(wire);
+}
+showDangerNotif('⚠ ARCHITECT IS RESHAPING THE GRID');
+showNotif('ARCHITECT — GRID RESHAPING', 2000);
+updateMinimap();
+}
 function shoot(targetX, targetZ) {
   if (shootCooldown > 0) return;
-  shootCooldown = 10;
-
-  const geo = new THREE.SphereGeometry(5, 6, 6);
-  const mat = new THREE.MeshBasicMaterial({ color: C_BLUE });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(playerPos.x, playerPos.y, playerPos.z);
-  scene.add(mesh);
-
-  const dx = targetX - playerPos.x;
-  const dz = targetZ - playerPos.z;
-  const dist = Math.sqrt(dx*dx+dz*dz);
-
-  // Bullet trail light
-  const bLight = new THREE.PointLight(C_BLUE, 1.2, 50);
-  scene.add(bLight);
-
-  bullets.push({
-    mesh, light: bLight,
-    vx: (dx/dist)*BULLET_SPEED,
-    vz: (dz/dist)*BULLET_SPEED,
-    life: 80
-  });
+  shootCooldown = 14;
+const geo = new THREE.SphereGeometry(5, 6, 6);
+const mat = new THREE.MeshBasicMaterial({ color: C_BLUE });
+const mesh = new THREE.Mesh(geo, mat);
+mesh.position.set(playerPos.x, playerPos.y, playerPos.z);
+scene.add(mesh);
+const dx = targetX - playerPos.x;
+const dz = targetZ - playerPos.z;
+const dist = Math.sqrt(dx*dx+dz*dz);
+const bLight = new THREE.PointLight(C_BLUE, 1.2, 50);
+scene.add(bLight);
+bullets.push({
+mesh, light: bLight,
+vx: (dx/dist)*BULLET_SPEED,
+vz: (dz/dist)*BULLET_SPEED,
+life: 80
+});
 }
-
 function updateBullets() {
-  for (let i=bullets.length-1;i>=0;i--) {
-    const b = bullets[i];
-    b.mesh.position.x += b.vx;
-    b.mesh.position.z += b.vz;
-    b.light.position.copy(b.mesh.position);
-    b.life--;
-
-    if (b.life<=0) { removeBullet(i); continue; }
-
-    // Check vs enemies
-    let hit = false;
-    for (let j=enemies.length-1;j>=0;j--) {
-      const e = enemies[j];
-      const dx = b.mesh.position.x - e.mesh.position.x;
-      const dz = b.mesh.position.z - e.mesh.position.z;
-      if (Math.sqrt(dx*dx+dz*dz) < e.size+5) {
-        // Hit!
-        spawnLightRing(e.mesh.position.x, e.mesh.position.z); // Light the Path
-
-        // Chain reaction — hit propagates to linked enemies
-        triggerChain(e);
-
-        e.hp--;
-        if (e.hp<=0) killEnemy(j);
-
-        removeBullet(i);
-        hit=true; break;
-      }
-    }
-    if (!hit) {
-      // Check wall collision
-      const tx = worldToTile(b.mesh.position.x);
-      const tz = worldToTile(b.mesh.position.z, true);
-      if (tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]===1) {
-        spawnParticles(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,C_BLUE,4);
-        removeBullet(i);
-      }
-    }
-  }
+for (let i=bullets.length-1;i>=0;i--) {
+const b = bullets[i];
+b.mesh.position.x += b.vx;
+b.mesh.position.z += b.vz;
+b.light.position.copy(b.mesh.position);
+b.life--;
+if (b.life<=0) { removeBullet(i); continue; }
+let hit = false;
+for (let j=enemies.length-1;j>=0;j--) {
+const e = enemies[j];
+const dx = b.mesh.position.x - e.mesh.position.x;
+const dz = b.mesh.position.z - e.mesh.position.z;
+if (Math.sqrt(dx*dx+dz*dz) < e.size+5) {
+spawnLightRing(e.mesh.position.x, e.mesh.position.z);
+triggerChain(e);
+e.hp--;
+if (e.hp<=0) killEnemy(j);
+removeBullet(i);
+hit=true; break;
 }
-
+}
+if (!hit) {
+const tx = worldToTile(b.mesh.position.x);
+const tz = worldToTile(b.mesh.position.z, true);
+if (tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]===1) {
+spawnParticles(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,C_BLUE,4);
+removeBullet(i);
+}
+}
+}
+}
 function removeBullet(i) {
-  scene.remove(bullets[i].mesh);
-  scene.remove(bullets[i].light);
+  const b = bullets[i];
+  b.mesh.visible = false;
+  scene.remove(b.mesh);
+  scene.remove(b.light);
+  disposeNode(b.mesh);
   bullets.splice(i,1);
 }
-
 function worldToTile(v, isZ=false) {
-  const off = isZ ? -(GRID_H*TILE)/2 : -(GRID_W*TILE)/2;
-  return Math.floor((v - off) / TILE);
+const off = isZ ? -(GRID_H*TILE)/2 : -(GRID_W*TILE)/2;
+return Math.floor((v - off) / TILE);
 }
-
-// ── CHAIN REACTION (Locked & Linked) ─────────────────────────
-// When one enemy is hit, the damage CHAINS through the hive network
-// Moving/destroying one affects all linked others
 function triggerChain(hitEnemy, depth=0) {
-  if (depth>4) return;
-  let chainCount = 0;
-  enemies.forEach(other => {
-    if (other===hitEnemy||other.chained||other.jammTimer>0) return;
-    const dx = other.mesh.position.x - hitEnemy.mesh.position.x;
-    const dz = other.mesh.position.z - hitEnemy.mesh.position.z;
-    if (Math.sqrt(dx*dx+dz*dz) < CHAIN_RADIUS) {
-      other.chained = true;
-      other.chainTimer = 25;
-      chainCount++;
-      // Stagger the chain visually
-      setTimeout(()=>{
-        if (!other.mesh) return;
-        spawnLightRing(other.mesh.position.x, other.mesh.position.z);
-        other.hp -= 1;
-        const idx = enemies.indexOf(other);
-        if (other.hp<=0 && idx>-1) {
-          killEnemy(idx);
-          triggerChain(other, depth+1);
-        }
-      }, depth*100+80);
-    }
-  });
-  if (chainCount>0) showNotif(`${chainCount}x CHAIN`, 600);
+if (depth>4) return;
+let chainCount = 0;
+enemies.forEach(other => {
+if (other===hitEnemy||other.chained||other.jammTimer>0) return;
+const dx = other.mesh.position.x - hitEnemy.mesh.position.x;
+const dz = other.mesh.position.z - hitEnemy.mesh.position.z;
+if (Math.sqrt(dx*dx+dz*dz) < CHAIN_RADIUS) {
+other.chained = true;
+other.chainTimer = 25;
+chainCount++;
+setTimeout(()=>{
+if (!other.mesh) return;
+spawnLightRing(other.mesh.position.x, other.mesh.position.z);
+other.hp -= 1;
+const idx = enemies.indexOf(other);
+if (other.hp<=0 && idx>-1) {
+killEnemy(idx);
+triggerChain(other, depth+1);
 }
-
+}, depth*100+80);
+}
+});
+if (chainCount>0) showNotif(`${chainCount}x CHAIN`, 600);
+}
 function killEnemy(idx) {
-  const e = enemies[idx];
-  if (!e||!e.mesh) return;
-  score += e.score * floor;
-  kills++; totalKills++;
+const e = enemies[idx];
+if (!e||!e.mesh) return;
+score += e.score * floor;
+kills++; totalKills++;
   spawnLightRing(e.mesh.position.x,e.mesh.position.z);
+  e.mesh.visible = false;
   scene.remove(e.mesh);
+  disposeNode(e.mesh);
   if(e.light) scene.remove(e.light);
-  enemies.splice(idx,1);
-  updateHUD();
+enemies.splice(idx,1);
+updateHUD();
 }
-
-// ── LIGHT RINGS (Light the Path) ────────────────────────────
-// Expanding rings of light emanate from explosions
-// They literally "light the path" — illuminate the dark map around them
 function spawnLightRing(x, z) {
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(6.5, 7.5, 16),
-    new THREE.MeshBasicMaterial({ color: C_BLUE, transparent:true, opacity:0.15, side:THREE.DoubleSide })
-  );
-  ring.rotation.x = -Math.PI/2;
-  ring.position.set(x, 3, z);
-  scene.add(ring);
-
-  // Temporary light burst
-  const burstLight = new THREE.PointLight(C_BLUE, 0.4, 60);
-  burstLight.position.set(x, 30, z);
-  scene.add(burstLight);
-
-  lightPulses.push({
-    mesh: ring, light: burstLight,
-    scale: 1, life: 1.0
-  });
+const ring = new THREE.Mesh(
+new THREE.RingGeometry(6.5, 7.5, 16),
+    new THREE.MeshBasicMaterial({ color: C_BLUE, transparent:true, opacity:0.15, side:THREE.DoubleSide, depthWrite: false })
+);
+ring.rotation.x = -Math.PI/2;
+ring.position.set(x, 3, z);
+scene.add(ring);
+const burstLight = new THREE.PointLight(C_BLUE, 0.4, 60);
+burstLight.position.set(x, 30, z);
+scene.add(burstLight);
+lightPulses.push({
+mesh: ring, light: burstLight,
+scale: 1, life: 1.0
+});
 }
-
 function updateLightPulses() {
   for (let i=lightPulses.length-1;i>=0;i--) {
     const p=lightPulses[i];
     p.scale += 2.0;
     p.life -= 0.04;
     p.mesh.scale.set(p.scale,p.scale,p.scale);
-    p.mesh.material.opacity = p.life * 0.15;
-    p.light.intensity = p.life * 0.4;
+    p.mesh.material.opacity = Math.max(0, p.life * 0.15);
+    p.light.intensity = Math.max(0, p.life * 0.4);
     if(p.life<=0) {
-      scene.remove(p.mesh); scene.remove(p.light);
+      p.mesh.visible = false;
+      scene.remove(p.mesh); 
+      scene.remove(p.light);
+      p.mesh.geometry.dispose();
+      p.mesh.material.dispose();
       lightPulses.splice(i,1);
     }
   }
 }
-
-// ── PARTICLES ────────────────────────────────────────────────
 function spawnParticles(x, y, z, color, count) {
-  for(let i=0;i<count;i++) {
-    const geo = new THREE.OctahedronGeometry(2+Math.random()*3);
-    const mat = new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.9});
-    const mesh = new THREE.Mesh(geo,mat);
-    mesh.position.set(x,y,z);
-    scene.add(mesh);
-    const angle = Math.random()*Math.PI*2;
-    const upSpeed = Math.random()*4+1;
-    const spd = Math.random()*5+2;
-    particles.push({
-      mesh,
-      vx:Math.cos(angle)*spd, vy:upSpeed, vz:Math.sin(angle)*spd,
-      life:1.0
-    });
-  }
+for(let i=0;i<count;i++) {
+const geo = new THREE.OctahedronGeometry(2+Math.random()*3);
+const mat = new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.9});
+const mesh = new THREE.Mesh(geo,mat);
+mesh.position.set(x,y,z);
+scene.add(mesh);
+const angle = Math.random()*Math.PI*2;
+const upSpeed = Math.random()*4+1;
+const spd = Math.random()*5+2;
+particles.push({
+mesh,
+vx:Math.cos(angle)*spd, vy:upSpeed, vz:Math.sin(angle)*spd,
+life:1.0
+});
 }
-
+}
 function updateParticles() {
-  for(let i=particles.length-1;i>=0;i--) {
-    const p=particles[i];
-    p.mesh.position.x+=p.vx; p.mesh.position.y+=p.vy; p.mesh.position.z+=p.vz;
-    p.vy-=0.15; // gravity
-    p.vx*=0.93; p.vz*=0.93;
-    p.life-=0.035;
-    p.mesh.material.opacity=p.life;
+for(let i=particles.length-1;i>=0;i--) {
+const p=particles[i];
+p.mesh.position.x+=p.vx; p.mesh.position.y+=p.vy; p.mesh.position.z+=p.vz;
+p.vy-=0.15;
+p.vx*=0.93; p.vz*=0.93;
+p.life-=0.035;
+p.mesh.material.opacity=p.life;
     p.mesh.rotation.x+=0.1; p.mesh.rotation.z+=0.1;
-    if(p.life<=0){scene.remove(p.mesh);particles.splice(i,1);}
-  }
+    if(p.life<=0){ p.mesh.visible=false; scene.remove(p.mesh); disposeNode(p.mesh); particles.splice(i,1); }
 }
-
-// ── PLAYER ABILITIES ─────────────────────────────────────────
-
-// Q — GLITCH: Freeze nearby enemies for 3 seconds
+}
 function abilityGlitch() {
-  if(abCooldowns.q>0) return;
-  abCooldowns.q = COOLDOWNS.q;
-  let count=0;
-  enemies.forEach(e=>{
-    e.stunTimer=90; // 1.5 seconds at 60fps
-    e.glitchVis=30;
-    spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,8);
-    count++;
-  });
-  spawnLightRing(playerPos.x,playerPos.z);
-  showNotif(`GLITCH ×${count}`,700);
-  showDangerNotif('PATTERN DISRUPTED');
+if(abCooldowns.q>0) return;
+abCooldowns.q = COOLDOWNS.q;
+let count=0;
+enemies.forEach(e=>{
+e.stunTimer=90;
+e.glitchVis=30;
+spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,8);
+count++;
+});
+spawnLightRing(playerPos.x,playerPos.z);
+showNotif(`GLITCH ×${count}`,700);
+showDangerNotif('PATTERN DISRUPTED');
 }
-
-// E — STATIC DASH: Teleport a short distance in movement direction
 function abilityDash() {
-  if(abCooldowns.e>0) return;
-  abCooldowns.e = COOLDOWNS.e;
-  const dashDist=120;
-  let dx=0,dz=0;
-  if(keys['w']||keys['ArrowUp'])    dz=-1;
-  if(keys['s']||keys['ArrowDown'])  dz=1;
-  if(keys['a']||keys['ArrowLeft'])  dx=-1;
-  if(keys['d']||keys['ArrowRight']) dx=1;
-  if(dx===0&&dz===0) dz=-1; // default: dash forward
-  const len=Math.sqrt(dx*dx+dz*dz);
-  const nx=playerPos.x+(dx/len)*dashDist;
-  const nz=playerPos.z+(dz/len)*dashDist;
-  // Check if destination is valid (not a wall)
-  const tx=worldToTile(nx), tz=worldToTile(nz,true);
-  if(tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]!==1) {
-    // Spawn trail particles along dash path
-    for(let i=0;i<8;i++) {
-      spawnParticles(
-        playerPos.x+(dx/len)*dashDist*(i/8),
-        playerPos.y,
-        playerPos.z+(dz/len)*dashDist*(i/8),
-        C_BLUE,2
-      );
-    }
-    playerPos.x=nx; playerPos.z=nz;
-  }
-  flashScreen(C_BLUE);
+if(abCooldowns.e>0) return;
+abCooldowns.e = COOLDOWNS.e;
+const dashDist=120;
+let dx=0,dz=0;
+if(keys['w']||keys['ArrowUp'])    dz=-1;
+if(keys['s']||keys['ArrowDown'])  dz=1;
+if(keys['a']||keys['ArrowLeft'])  dx=-1;
+if(keys['d']||keys['ArrowRight']) dx=1;
+if(dx===0&&dz===0) dz=-1;
+const len=Math.sqrt(dx*dx+dz*dz);
+const nx=playerPos.x+(dx/len)*dashDist;
+const nz=playerPos.z+(dz/len)*dashDist;
+const tx=worldToTile(nx), tz=worldToTile(nz,true);
+if(tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]!==1) {
+for(let i=0;i<8;i++) {
+spawnParticles(
+playerPos.x+(dx/len)*dashDist*(i/8),
+playerPos.y,
+playerPos.z+(dz/len)*dashDist*(i/8),
+C_BLUE,2
+);
 }
-
-// R — GHOST: Spawn a decoy hologram and turn invisible for 4 seconds
+playerPos.x=nx; playerPos.z=nz;
+}
+flashScreen(C_BLUE);
+}
 function abilityGhost() {
-  if(abCooldowns.r>0) return;
-  abCooldowns.r = COOLDOWNS.r;
-
-  // Spawn decoy clone at player's current position
-  if(decoyMesh) { scene.remove(decoyMesh); scene.remove(decoyLight); }
-  const geo = new THREE.ConeGeometry(14,28,4);
-  const mat = new THREE.MeshLambertMaterial({
-    color: C_WHITE, emissive: C_GREEN, emissiveIntensity: 0.8,
-    transparent: true, opacity: 0.6
-  });
-  decoyMesh = new THREE.Mesh(geo, mat);
-  decoyMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
-  scene.add(decoyMesh);
-
-  // Wireframe overlay on decoy
-  const wireMat = new THREE.MeshBasicMaterial({color:C_GREEN, wireframe:true, transparent:true, opacity:0.7});
-  const wire = new THREE.Mesh(new THREE.ConeGeometry(15,30,4), wireMat);
-  decoyMesh.add(wire);
-
-  // Decoy glow
-  decoyLight = new THREE.PointLight(C_GREEN, 2, 120);
-  decoyLight.position.set(playerPos.x, 50, playerPos.z);
-  scene.add(decoyLight);
-
-  decoyPos.x = playerPos.x;
-  decoyPos.z = playerPos.z;
-  decoyTimer = 170; // 2.8 seconds at 60fps
-  ghostActive = true;
-
-  // Make player semi-invisible
-  if(playerMesh) {
-    playerMesh.material.opacity = 0.15;
-    playerMesh.children.forEach(c => { if(c.material) c.material.opacity = 0.1; });
-  }
-
-  // All enemies switch to chase the decoy
-  enemies.forEach(e => {
-    e.state = 'chase';
-    e.alertTimer = 240;
-  });
-
-  spawnLightRing(playerPos.x, playerPos.z);
-  spawnParticles(playerPos.x, playerPos.y, playerPos.z, C_GREEN, 12);
-  flashScreen(C_GREEN);
-  showNotif('GHOST DEPLOYED', 800);
-  showDangerNotif('HOLOGRAM ACTIVE — YOU ARE INVISIBLE');
+if(abCooldowns.r>0) return;
+abCooldowns.r = COOLDOWNS.r;
+if(decoyMesh) { scene.remove(decoyMesh); scene.remove(decoyLight); }
+const geo = new THREE.ConeGeometry(14,28,4);
+const mat = new THREE.MeshLambertMaterial({
+color: C_WHITE, emissive: C_GREEN, emissiveIntensity: 0.8,
+transparent: true, opacity: 0.6
+});
+decoyMesh = new THREE.Mesh(geo, mat);
+decoyMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
+scene.add(decoyMesh);
+const wireMat = new THREE.MeshBasicMaterial({color:C_GREEN, wireframe:true, transparent:true, opacity:0.7});
+const wire = new THREE.Mesh(new THREE.ConeGeometry(15,30,4), wireMat);
+decoyMesh.add(wire);
+decoyLight = new THREE.PointLight(C_GREEN, 2, 120);
+decoyLight.position.set(playerPos.x, 50, playerPos.z);
+scene.add(decoyLight);
+decoyPos.x = playerPos.x;
+decoyPos.z = playerPos.z;
+decoyTimer = 170;
+ghostActive = true;
+if(playerMesh) {
+playerMesh.material.opacity = 0.15;
+playerMesh.children.forEach(c => { if(c.material) c.material.opacity = 0.1; });
 }
-
+enemies.forEach(e => {
+e.state = 'chase';
+e.alertTimer = 240;
+});
+spawnLightRing(playerPos.x, playerPos.z);
+spawnParticles(playerPos.x, playerPos.y, playerPos.z, C_GREEN, 12);
+flashScreen(C_GREEN);
+showNotif('GHOST DEPLOYED', 800);
+showDangerNotif('HOLOGRAM ACTIVE — YOU ARE INVISIBLE');
+}
 function updateDecoy() {
-  if(decoyTimer <= 0) return;
-  decoyTimer--;
-
-  // Decoy flicker effect
-  if(decoyMesh) {
-    decoyMesh.rotation.y += 0.04;
-    decoyMesh.material.opacity = 0.3 + Math.sin(decoyTimer * 0.15) * 0.3;
-  }
-
-  // Expire decoy
-  if(decoyTimer <= 0) {
-    if(decoyMesh) { spawnParticles(decoyPos.x, 16, decoyPos.z, C_GREEN, 10); scene.remove(decoyMesh); decoyMesh = null; }
-    if(decoyLight) { scene.remove(decoyLight); decoyLight = null; }
-    ghostActive = false;
-    // Restore player visibility
-    if(playerMesh) {
-      playerMesh.material.opacity = 0.95;
-      playerMesh.children.forEach(c => { if(c.material) c.material.opacity = c.material.wireframe ? 0.6 : 0.8; });
-    }
-    showDangerNotif('GHOST EXPIRED — YOU ARE VISIBLE');
-  }
+if(decoyTimer <= 0) return;
+decoyTimer--;
+if(decoyMesh) {
+decoyMesh.rotation.y += 0.04;
+decoyMesh.material.opacity = 0.3 + Math.sin(decoyTimer * 0.15) * 0.3;
 }
-
-// F — SECRET ABILITY (Nova Pulse): found as easter egg
-// Massive light explosion that damages ALL enemies on screen
+if(decoyTimer <= 0) {
+if(decoyMesh) { spawnParticles(decoyPos.x, 16, decoyPos.z, C_GREEN, 10); scene.remove(decoyMesh); decoyMesh = null; }
+if(decoyLight) { scene.remove(decoyLight); decoyLight = null; }
+ghostActive = false;
+if(playerMesh) {
+playerMesh.material.opacity = 0.95;
+playerMesh.children.forEach(c => { if(c.material) c.material.opacity = c.material.wireframe ? 0.6 : 0.8; });
+}
+showDangerNotif('GHOST EXPIRED — YOU ARE VISIBLE');
+}
+}
 function abilityNovaPulse() {
-  if(!secretAbilityFound||abCooldowns.f>0) return;
-  abCooldowns.f = COOLDOWNS.f;
-  enemies.forEach((e,i)=>{
-    spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,12);
-    spawnLightRing(e.mesh.position.x,e.mesh.position.z);
-    e.hp-=2;
-    if(e.hp<=0) setTimeout(()=>{ const idx=enemies.indexOf(e); if(idx>-1)killEnemy(idx); },i*30);
-  });
-  flashScreen(C_GREEN);
-  showNotif('NOVA PULSE',1000);
+if(!secretAbilityFound||abCooldowns.f>0) return;
+abCooldowns.f = COOLDOWNS.f;
+enemies.forEach((e,i)=>{
+spawnParticles(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z,C_GREEN,12);
+spawnLightRing(e.mesh.position.x,e.mesh.position.z);
+e.hp-=2;
+if(e.hp<=0) setTimeout(()=>{ const idx=enemies.indexOf(e); if(idx>-1)killEnemy(idx); },i*30);
+});
+flashScreen(C_GREEN);
+showNotif('NOVA PULSE',1000);
 }
-
-// ── PLAYER UPDATE ────────────────────────────────────────────
 function updatePlayer() {
-  if(shootCooldown>0) shootCooldown--;
-
-  // Movement
-  let dx=0, dz=0;
-  if(keys['w']||keys['ArrowUp'])    dz-=PLAYER_SPEED;
-  if(keys['s']||keys['ArrowDown'])  dz+=PLAYER_SPEED;
-  if(keys['a']||keys['ArrowLeft'])  dx-=PLAYER_SPEED;
-  if(keys['d']||keys['ArrowRight']) dx+=PLAYER_SPEED;
-
-  // Normalize diagonal movement
-  if(dx!==0&&dz!==0){dx*=0.707;dz*=0.707;}
-
-  const nx=playerPos.x+dx, nz=playerPos.z+dz;
-  const tx=worldToTile(nx), tz=worldToTile(nz,true);
-
-  // During boss fight — enforce circular arena boundary
-  if(gameState==='boss') {
-    const distFromCenter = Math.sqrt(nx*nx+nz*nz);
-    if(distFromCenter < bossArenaRadius) {
-      playerPos.x=nx; playerPos.z=nz;
-    } else {
-      // Push player back inside — slide along boundary
-      const angle = Math.atan2(nz, nx);
-      playerPos.x = Math.cos(angle)*(bossArenaRadius-4);
-      playerPos.z = Math.sin(angle)*(bossArenaRadius-4);
-    }
-  } else {
-    // Normal floor — wall collision
-    if(tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]!==1) {
-      playerPos.x=nx; playerPos.z=nz;
-    }
-  }
-
-  if(playerMesh) {
-    playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
-    playerMesh.rotation.y += 0.04;
-  }
-  playerLight.position.set(playerPos.x,60,playerPos.z);
-
-  // Move camera to follow player (isometric follow)
-  camera.position.set(playerPos.x+300, 400, playerPos.z+300);
-  camera.lookAt(playerPos.x,0,playerPos.z);
-
-  // Cooldown updates
-  ['q','e','r','f'].forEach(k=>{
-    if(abCooldowns[k]>0) abCooldowns[k]--;
-    const maxCD = COOLDOWNS[k];
-    const pct = ((maxCD-abCooldowns[k])/maxCD)*100;
-    const bar = document.getElementById(`cd-${k}`);
-    if(bar) bar.style.width = pct+'%';
-    const ab = document.getElementById(`ab-${k}`);
-    if(ab) {
-      ab.classList.toggle('ready', abCooldowns[k]===0);
-      ab.classList.toggle('on-cooldown', abCooldowns[k]>0);
-    }
-  });
-
-  // Check exit — requires 75% of enemies killed to proceed
-  // This prevents getting stuck if an enemy glitches out
-  const edx=playerPos.x-exitPos.x, edz=playerPos.z-exitPos.z;
-  const distToExit = Math.sqrt(edx*edx+edz*edz);
-  const killThreshold = Math.ceil(waveEnemyCount * 0.75);
-  const enoughKilled = kills >= killThreshold || enemies.length === 0;
-
-  if (exitMesh) {
-    // Show exit as locked (red) or open (green) depending on kills
-    exitMesh.material.color.set(enoughKilled ? C_EXIT : 0xFF4400);
-    exitMesh.material.emissive.set(enoughKilled ? C_EXIT : 0xFF2200);
-  }
-
-  // Show hint when close to exit but not enough kills
-  if (distToExit < 80 && !enoughKilled) {
-    showDangerNotif(`NEUTRALIZE MORE DRONES — ${enemies.length} REMAINING`);
-  }
-
-  // If exit is open but player seems stuck nearby, remind them about dash
-  if (distToExit < 150 && distToExit > 40 && enoughKilled && frameCount % 300 === 0) {
-    showDangerNotif('REACH THE EXIT — [ E ] DASH PHASES THROUGH WALLS');
-  }
-
-  if (distToExit < 40 && enoughKilled && !transitioning) {
-    transitioning = true;
-    nextFloor();
-  }
-
-  // Check secret terminal
-  if(secretTerminal && !secretFound) {
-    const sdx=playerPos.x-secretTerminal.position.x;
-    const sdz=playerPos.z-secretTerminal.position.z;
-    if(Math.sqrt(sdx*sdx+sdz*sdz)<40) {
-      triggerSecretTerminal();
-    }
-  }
-
-  // Exit blink
-  if(exitMesh) {
-    exitMesh.material.emissiveIntensity = 0.4+Math.sin(frameCount*0.08)*0.3;
-  }
+if(shootCooldown>0) shootCooldown--;
+let dx=0, dz=0;
+if(keys['w']||keys['ArrowUp'])    dz-=PLAYER_SPEED;
+if(keys['s']||keys['ArrowDown'])  dz+=PLAYER_SPEED;
+if(keys['a']||keys['ArrowLeft'])  dx-=PLAYER_SPEED;
+if(keys['d']||keys['ArrowRight']) dx+=PLAYER_SPEED;
+if(dx!==0&&dz!==0){dx*=0.707;dz*=0.707;}
+const nx=playerPos.x+dx, nz=playerPos.z+dz;
+const tx=worldToTile(nx), tz=worldToTile(nz,true);
+if(gameState==='boss') {
+const distFromCenter = Math.sqrt(nx*nx+nz*nz);
+if(distFromCenter < bossArenaRadius) {
+playerPos.x=nx; playerPos.z=nz;
+} else {
+const angle = Math.atan2(nz, nx);
+playerPos.x = Math.cos(angle)*(bossArenaRadius-4);
+playerPos.z = Math.sin(angle)*(bossArenaRadius-4);
 }
-
+} else {
+if(tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]!==1) {
+playerPos.x=nx; playerPos.z=nz;
+}
+}
+if(playerMesh) {
+playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
+playerMesh.rotation.y += 0.04;
+}
+playerLight.position.set(playerPos.x,60,playerPos.z);
+camera.position.set(playerPos.x+300, 400, playerPos.z+300);
+camera.lookAt(playerPos.x,0,playerPos.z);
+['q','e','r','f'].forEach(k=>{
+if(abCooldowns[k]>0) abCooldowns[k]--;
+const maxCD = COOLDOWNS[k];
+const pct = ((maxCD-abCooldowns[k])/maxCD)*100;
+const bar = document.getElementById(`cd-${k}`);
+if(bar) bar.style.width = pct+'%';
+const ab = document.getElementById(`ab-${k}`);
+if(ab) {
+ab.classList.toggle('ready', abCooldowns[k]===0);
+ab.classList.toggle('on-cooldown', abCooldowns[k]>0);
+}
+});
+const edx=playerPos.x-exitPos.x, edz=playerPos.z-exitPos.z;
+const distToExit = Math.sqrt(edx*edx+edz*edz);
+const killThreshold = Math.ceil(waveEnemyCount * 0.75);
+const enoughKilled = kills >= killThreshold || enemies.length === 0;
+if (exitMesh) {
+exitMesh.material.color.set(enoughKilled ? C_EXIT : 0xFF4400);
+exitMesh.material.emissive.set(enoughKilled ? C_EXIT : 0xFF2200);
+}
+if (distToExit < 80 && !enoughKilled) {
+showDangerNotif(`NEUTRALIZE MORE DRONES — ${enemies.length} REMAINING`);
+}
+if (distToExit < 150 && distToExit > 40 && enoughKilled && frameCount % 300 === 0) {
+showDangerNotif('REACH THE EXIT — [ E ] DASH PHASES THROUGH WALLS');
+}
+if (distToExit < 40 && enoughKilled && !transitioning) {
+transitioning = true;
+nextFloor();
+}
+if(secretTerminal && !secretFound) {
+const sdx=playerPos.x-secretTerminal.position.x;
+const sdz=playerPos.z-secretTerminal.position.z;
+if(Math.sqrt(sdx*sdx+sdz*sdz)<40) {
+triggerSecretTerminal();
+}
+}
+if(exitMesh) {
+exitMesh.material.emissiveIntensity = 0.4+Math.sin(frameCount*0.08)*0.3;
+}
+}
 function triggerSecretTerminal() {
-  if(secretFound) return;
-  secretFound=true;
-  secretAbilityFound=true;
-
-  // Reveal the hidden F ability
-  const ab=document.getElementById('ab-f');
-  if(ab){
-    ab.style.opacity='1';
-    ab.style.borderColor='rgba(0,255,65,0.6)';
-    ab.querySelector('.key').style.color='var(--green)';
-  }
-
-  // Pause game then show simulation screen
-  // Use a short delay so any lingering proximity check doesn't re-fire
-  const prevState = gameState;
-  gameState = 'terminal'; // pause — not 'playing' or 'boss' so loop skips updates
-  setTimeout(()=>{
-    document.getElementById('simulation-screen').classList.add('show');
-  }, 100);
+if(secretFound) return;
+secretFound=true;
+secretAbilityFound=true;
+const ab=document.getElementById('ab-f');
+if(ab){
+ab.style.opacity='1';
+ab.style.borderColor='rgba(0,255,65,0.6)';
+ab.querySelector('.key').style.color='var(--green)';
 }
-
-// ── FLOOR PROGRESSION ────────────────────────────────────────
+const prevState = gameState;
+gameState = 'terminal';
+setTimeout(()=>{
+document.getElementById('simulation-screen').classList.add('show');
+}, 100);
+}
 function nextFloor() {
-  floor++;
-  if(floor>6) {
-    startBoss();
-    return;
-  }
-  showNotif(`FLOOR ${floor.toString().padStart(2,'0')}`,1200);
-  flashScreen(C_GREEN);
-
-  // Floor 3: Architect introduced — pause game and warn player properly
-  if(floor === 3) {
-    setTimeout(()=>{
-      showBriefing('— FLOOR 03 — SECTOR RESTRICTED —', [
-        {text:'WARNING.', color:'#FF2020', size:'22px', spacing:'10px'},
-        {text:'ARCHITECT UNIT DETECTED ON THIS FLOOR.', color:'#FF4400', size:'13px', spacing:'4px'},
-        {text:'IT WILL RESHAPE THE GRID AROUND YOU.', color:'#FF6600', size:'12px', spacing:'4px'},
-        {text:'NEW WALLS WILL RISE. PATHS WILL CLOSE.', color:'#FFAA00', size:'11px', spacing:'3px'},
-        {text:'USE  [ E ]  STATIC DASH  TO PHASE THROUGH WALLS.', color:'#00CFFF', size:'13px', spacing:'4px'},
-        {text:'REACH THE EXIT. BREAK THE PATTERN.', color:'#00FF41', size:'11px', spacing:'3px'},
-      ], 9000, null);
-    }, 1400);
-  }
-
-  // Floor 4: final floor before boss — reinforce
-  if(floor === 4) {
-    setTimeout(()=>{
-      showBriefing('— FLOOR 04 — FINAL SECTOR —', [
-        {text:'ARCHITECT ACTIVITY INCREASING.', color:'#FF2020', size:'16px', spacing:'6px'},
-        {text:'THE GRID WILL MUTATE MORE FREQUENTLY.', color:'#FF6600', size:'12px', spacing:'4px'},
-        {text:'DASH  [ E ]  PHASES THROUGH ANY WALL.', color:'#00CFFF', size:'13px', spacing:'4px'},
-        {text:'THE DIRECTOR AWAITS BEYOND THIS FLOOR.', color:'#00FF41', size:'11px', spacing:'3px'},
-      ], 7000, null);
-    }, 1400);
-  }
-
-  setTimeout(()=>{
-    generateFloor(floor);
-    // Only reset transitioning AFTER generation completes — prevents exit re-triggering
-    setTimeout(()=>{ transitioning = false; }, 500);
-  }, 1200);
-  document.getElementById('floor-val').textContent=floor.toString().padStart(2,'0');
-  document.getElementById('floor-display').textContent=`FLOOR ${floor.toString().padStart(2,'0')} — SECTOR UNKNOWN`;
+floor++;
+if(floor>6) {
+startBoss();
+return;
 }
-
-// ── BOSS FIGHT ───────────────────────────────────────────────
+showNotif(`FLOOR ${floor.toString().padStart(2,'0')}`,1200);
+flashScreen(C_GREEN);
+if(floor === 3) {
+setTimeout(()=>{
+showBriefing('— FLOOR 03 — SECTOR RESTRICTED —', [
+{text:'WARNING.', color:'#FF2020', size:'22px', spacing:'10px'},
+{text:'ARCHITECT UNIT DETECTED ON THIS FLOOR.', color:'#FF4400', size:'13px', spacing:'4px'},
+{text:'IT WILL RESHAPE THE GRID AROUND YOU.', color:'#FF6600', size:'12px', spacing:'4px'},
+{text:'NEW WALLS WILL RISE. PATHS WILL CLOSE.', color:'#FFAA00', size:'11px', spacing:'3px'},
+{text:'USE  [ E ]  STATIC DASH  TO PHASE THROUGH WALLS.', color:'#00CFFF', size:'13px', spacing:'4px'},
+{text:'REACH THE EXIT. BREAK THE PATTERN.', color:'#00FF41', size:'11px', spacing:'3px'},
+], 9000, null);
+}, 1400);
+}
+if(floor === 4) {
+setTimeout(()=>{
+showBriefing('— FLOOR 04 — FINAL SECTOR —', [
+{text:'ARCHITECT ACTIVITY INCREASING.', color:'#FF2020', size:'16px', spacing:'6px'},
+{text:'THE GRID WILL MUTATE MORE FREQUENTLY.', color:'#FF6600', size:'12px', spacing:'4px'},
+{text:'DASH  [ E ]  PHASES THROUGH ANY WALL.', color:'#00CFFF', size:'13px', spacing:'4px'},
+{text:'THE DIRECTOR AWAITS BEYOND THIS FLOOR.', color:'#00FF41', size:'11px', spacing:'3px'},
+], 7000, null);
+}, 1400);
+}
+setTimeout(()=>{
+generateFloor(floor);
+setTimeout(()=>{ transitioning = false; }, 500);
+}, 1200);
+document.getElementById('floor-val').textContent=floor.toString().padStart(2,'0');
+document.getElementById('floor-display').textContent=`FLOOR ${floor.toString().padStart(2,'0')} — SECTOR UNKNOWN`;
+}
 function startBoss() {
   gameState='boss';
-  // Clear floor
-  floorTiles.forEach(m=>scene.remove(m)); floorTiles=[];
-  wallMeshes.forEach(m=>scene.remove(m)); wallMeshes=[];
-  enemies.forEach(e=>{scene.remove(e.mesh);if(e.light)scene.remove(e.light);}); enemies=[];
-  hivelines.forEach(l=>scene.remove(l)); hivelines=[];
-
-  // Build boss arena — circular Tron grid with boundary walls
-  const ARENA_R = 6; // radius in tiles
-  for(let x=-ARENA_R;x<=ARENA_R;x++) for(let z=-ARENA_R;z<=ARENA_R;z++) {
-    const dist2 = x*x+z*z;
-    if(dist2 > ARENA_R*ARENA_R+2) continue;
-    const wx=x*TILE, wz=z*TILE;
-
-    if(dist2 >= ARENA_R*ARENA_R-4) {
-      // Boundary ring — tall glowing walls player cannot pass
-      const boundWall = makeBox(TILE-2, TILE*2, TILE-2, 0x001133, C_RED);
-      boundWall.position.set(wx, TILE, wz);
-      scene.add(boundWall);
-      wallMeshes.push(boundWall);
-      const boundWire = makeWireBox(TILE, TILE*2, TILE, C_RED);
-      boundWire.position.set(wx, TILE, wz);
-      scene.add(boundWire);
-      wallMeshes.push(boundWire);
-    } else {
-      // Floor tile
-      const tile=makeBox(TILE-2,2,TILE-2,0x001133,C_BLUE);
-      tile.position.set(wx,0,wz);
-      scene.add(tile); floorTiles.push(tile);
-      const gl1=makeLine(wx-TILE/2,2,wz,wx+TILE/2,2,wz,C_BLUE,0.2);
-      const gl2=makeLine(wx,2,wz-TILE/2,wx,2,wz+TILE/2,C_BLUE,0.2);
-      scene.add(gl1);scene.add(gl2);
-      floorTiles.push(gl1);floorTiles.push(gl2);
-    }
-  }
-
-  // Place player at bottom of arena (inside boundary)
-  playerPos={x:0,y:16,z:(ARENA_R-2)*TILE};
-  if(playerMesh) playerMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
-
-  // Store arena radius for boundary enforcement
-  bossArenaRadius = (ARENA_R-2) * TILE;
-
-  bossPhase=1;
-  bossMaxHP=60;
-  bossHP=bossMaxHP;
-  spawnBoss();
-  showNotif('THE DIRECTOR',1500);
-  setTimeout(()=>showDangerNotif('BREAK THE PATTERN. BREAK THE LOOP.'),1600);
-  updateHUD();
+  floorTiles.forEach(m=>{scene.remove(m); disposeNode(m);}); floorTiles=[];
+  wallMeshes.forEach(m=>{scene.remove(m); disposeNode(m);}); wallMeshes=[];
+  enemies.forEach(e=>{e.mesh.visible=false; scene.remove(e.mesh); disposeNode(e.mesh); if(e.light) scene.remove(e.light);}); enemies=[];
+  hivelines.forEach(l=>{scene.remove(l); disposeNode(l);}); hivelines=[];
+const ARENA_R = 6;
+for(let x=-ARENA_R;x<=ARENA_R;x++) for(let z=-ARENA_R;z<=ARENA_R;z++) {
+const dist2 = x*x+z*z;
+if(dist2 > ARENA_R*ARENA_R+2) continue;
+const wx=x*TILE, wz=z*TILE;
+if(dist2 >= ARENA_R*ARENA_R-4) {
+const boundWall = makeBox(TILE-2, TILE*2, TILE-2, 0x001133, C_RED);
+boundWall.position.set(wx, TILE, wz);
+scene.add(boundWall);
+wallMeshes.push(boundWall);
+const boundWire = makeWireBox(TILE, TILE*2, TILE, C_RED);
+boundWire.position.set(wx, TILE, wz);
+scene.add(boundWire);
+wallMeshes.push(boundWire);
+} else {
+const tile=makeBox(TILE-2,2,TILE-2,0x001133,C_BLUE);
+tile.position.set(wx,0,wz);
+scene.add(tile); floorTiles.push(tile);
+const gl1=makeLine(wx-TILE/2,2,wz,wx+TILE/2,2,wz,C_BLUE,0.2);
+const gl2=makeLine(wx,2,wz-TILE/2,wx,2,wz+TILE/2,C_BLUE,0.2);
+scene.add(gl1);scene.add(gl2);
+floorTiles.push(gl1);floorTiles.push(gl2);
 }
-
+}
+playerPos={x:0,y:16,z:(ARENA_R-2)*TILE};
+if(playerMesh) playerMesh.position.set(playerPos.x, playerPos.y, playerPos.z);
+bossArenaRadius = (ARENA_R-2) * TILE;
+bossPhase=1;
+bossMaxHP=60;
+bossHP=bossMaxHP;
+spawnBoss();
+showNotif('THE DIRECTOR',1500);
+setTimeout(()=>showDangerNotif('BREAK THE PATTERN. BREAK THE LOOP.'),1600);
+updateHUD();
+}
 function spawnBoss() {
-  if(bossObj) {
-    scene.remove(bossObj.mesh);
-    if(bossObj.ring) scene.remove(bossObj.ring);
-    if(bossObj.light) scene.remove(bossObj.light);
-  }
-
-  // Boss is a large wireframe icosahedron — looks complex and imposing
-  const geo = new THREE.IcosahedronGeometry(44);
-  const mat = new THREE.MeshLambertMaterial({
-    color: bossPhase===1?0xAA0000:bossPhase===2?0xAA5500:0xFF0000,
-    emissive: bossPhase===1?0x550000:bossPhase===2?0x553300:0x880000,
-    emissiveIntensity:0.8, wireframe:false, transparent:true, opacity:0.85
-  });
-  const mesh=new THREE.Mesh(geo,mat);
-  mesh.position.set(0,44,0);
-  scene.add(mesh);
-
-  const wireGeo=new THREE.IcosahedronGeometry(46);
-  const wireMat=new THREE.MeshBasicMaterial({color:C_RED,wireframe:true,transparent:true,opacity:0.5});
-  const wire=new THREE.Mesh(wireGeo,wireMat);
-  wire.position.set(0,44,0);
-  scene.add(wire);
-
-  const light=new THREE.PointLight(C_RED,3,300);
-  light.position.set(0,80,0);
-  scene.add(light);
-
-  bossObj={mesh,ring:wire,light,angle:0,shootTimer:0,phase:bossPhase};
+if(bossObj) {
+scene.remove(bossObj.mesh);
+if(bossObj.ring) scene.remove(bossObj.ring);
+if(bossObj.light) scene.remove(bossObj.light);
 }
-
+const geo = new THREE.IcosahedronGeometry(44);
+const mat = new THREE.MeshLambertMaterial({
+color: bossPhase===1?0xAA0000:bossPhase===2?0xAA5500:0xFF0000,
+emissive: bossPhase===1?0x550000:bossPhase===2?0x553300:0x880000,
+emissiveIntensity:0.8, wireframe:false, transparent:true, opacity:0.85
+});
+const mesh=new THREE.Mesh(geo,mat);
+mesh.position.set(0,44,0);
+scene.add(mesh);
+const wireGeo=new THREE.IcosahedronGeometry(46);
+const wireMat=new THREE.MeshBasicMaterial({color:C_RED,wireframe:true,transparent:true,opacity:0.5});
+const wire=new THREE.Mesh(wireGeo,wireMat);
+wire.position.set(0,44,0);
+scene.add(wire);
+const light=new THREE.PointLight(C_RED,3,300);
+light.position.set(0,80,0);
+scene.add(light);
+bossObj={mesh,ring:wire,light,angle:0,shootTimer:0,phase:bossPhase};
+}
 function updateBoss() {
-  if(!bossObj||!bossObj.mesh) return;
-
-  bossObj.angle+=0.008+bossPhase*0.004;
-  bossObj.mesh.rotation.y=bossObj.angle;
-  bossObj.ring.rotation.y=-bossObj.angle*1.3;
-  bossObj.ring.rotation.x=bossObj.angle*0.7;
-
-  // Boss movement pattern — figure changes by phase
-  let bx,bz;
-  if(bossPhase===1) {
-    // Phase 1: Circular pattern — easy to read
-    bx=Math.cos(bossObj.angle*0.5)*160;
-    bz=Math.sin(bossObj.angle*0.5)*160;
-  } else if(bossPhase===2) {
-    // Phase 2: Clones + figure-8 — harder pattern
-    bx=Math.cos(bossObj.angle*0.7)*130;
-    bz=Math.sin(bossObj.angle*1.4)*80;
-    // Spawn brief clones periodically
-    if(frameCount%120===0) spawnBossClone();
-  } else {
-    // Phase 3: Chaotic — reality glitches, gravity shifts
-    bx=Math.cos(bossObj.angle*1.2)*100+Math.sin(frameCount*0.03)*40;
-    bz=Math.sin(bossObj.angle*0.9)*100+Math.cos(frameCount*0.05)*40;
-    if(frameCount%60===0) glitchWalls();
-  }
-
-  bossObj.mesh.position.set(bx,44+Math.sin(bossObj.angle*2)*15,bz);
-  bossObj.ring.position.copy(bossObj.mesh.position);
+if(!bossObj||!bossObj.mesh) return;
+bossObj.angle+=0.008+bossPhase*0.004;
+bossObj.mesh.rotation.y=bossObj.angle;
+bossObj.ring.rotation.y=-bossObj.angle*1.3;
+bossObj.ring.rotation.x=bossObj.angle*0.7;
+let bx,bz;
+if(bossPhase===1) {
+bx=Math.cos(bossObj.angle*0.5)*160;
+bz=Math.sin(bossObj.angle*0.5)*160;
+} else if(bossPhase===2) {
+bx=Math.cos(bossObj.angle*0.7)*130;
+bz=Math.sin(bossObj.angle*1.4)*80;
+if(frameCount%120===0) spawnBossClone();
+} else {
+bx=Math.cos(bossObj.angle*1.2)*100+Math.sin(frameCount*0.03)*40;
+bz=Math.sin(bossObj.angle*0.9)*100+Math.cos(frameCount*0.05)*40;
+if(frameCount%60===0) glitchWalls();
+}
+bossObj.mesh.position.set(bx,44+Math.sin(bossObj.angle*2)*15,bz);
+bossObj.ring.position.copy(bossObj.mesh.position);
   bossObj.light.position.set(bx,100,bz);
-
-  // Boss shoots bullets at player
   bossObj.shootTimer++;
-  const shootInterval = bossPhase===3?40:bossPhase===2?60:90;
+  const shootInterval = bossPhase===3?32:bossPhase===2?48:72;
   if(bossObj.shootTimer>=shootInterval) {
     bossObj.shootTimer=0;
     spawnBossBullet(bx,bz);
   }
-
-  // Boss collision with player (cooldown so not every frame)
-  const dx=playerPos.x-bx, dz=playerPos.z-bz;
-  if(Math.sqrt(dx*dx+dz*dz)<58 && frameCount%60===0) {
-    playerHP-=5;
-    triggerGlitch();
-    updateHUD();
-    if(playerHP<=0) { endGame('dead'); return; }
-  }
-
-  // Update boss HP bar display
-  const pct=(bossHP/bossMaxHP)*100;
-  const hBar=document.getElementById('health-bar');
-  if(hBar){ hBar.style.background=`hsl(${pct},100%,50%)`; }
-
-  // Phase transitions based on HP
-  const hpPct=bossHP/bossMaxHP;
-  if(hpPct<0.66&&bossPhase===1) { bossPhase=2; showNotif('PHASE 2',1000); spawnBoss(); }
-  if(hpPct<0.33&&bossPhase===2) { bossPhase=3; showNotif('PHASE 3',1000); flashScreen(C_RED); spawnBoss(); }
-  if(bossHP<=0) { endGame('win'); }
+const dx=playerPos.x-bx, dz=playerPos.z-bz;
+if(Math.sqrt(dx*dx+dz*dz)<58 && frameCount%60===0) {
+  playerHP-=3; // Decreased boss collision damage from 5 to 3
+  triggerGlitch();
+  updateHUD();
+  if(playerHP<=0) { endGame('dead'); return; }
 }
-
+const pct=(bossHP/bossMaxHP)*100;
+const hBar=document.getElementById('health-bar');
+if(hBar){ hBar.style.background=`hsl(${pct},100%,50%)`; }
+const hpPct=bossHP/bossMaxHP;
+if(hpPct<0.66&&bossPhase===1) { bossPhase=2; showNotif('PHASE 2',1000); spawnBoss(); }
+if(hpPct<0.33&&bossPhase===2) { bossPhase=3; showNotif('PHASE 3',1000); flashScreen(C_RED); spawnBoss(); }
+if(bossHP<=0) { endGame('win'); }
+}
 function spawnBossBullet(bx,bz) {
-  const geo=new THREE.SphereGeometry(6,6,6);
-  const mat=new THREE.MeshBasicMaterial({color:C_RED});
-  const mesh=new THREE.Mesh(geo,mat);
-  mesh.position.set(bx,playerPos.y,bz);
-  scene.add(mesh);
-  const dx=playerPos.x-bx, dz=playerPos.z-bz;
+const geo=new THREE.SphereGeometry(6,6,6);
+const mat=new THREE.MeshBasicMaterial({color:C_RED});
+const mesh=new THREE.Mesh(geo,mat);
+mesh.position.set(bx,playerPos.y,bz);
+scene.add(mesh);
+const dx=playerPos.x-bx, dz=playerPos.z-bz;
   const dist=Math.sqrt(dx*dx+dz*dz)||1;
-  const spd=4+bossPhase;
+  const spd=3+bossPhase; // Decreased from 4 + bossPhase
   bossBullets.push({mesh,vx:(dx/dist)*spd,vz:(dz/dist)*spd,life:100});
 }
-
 function updateBossBullets() {
-  for(let i=bossBullets.length-1;i>=0;i--) {
-    const b=bossBullets[i];
-    b.mesh.position.x+=b.vx; b.mesh.position.z+=b.vz;
+for(let i=bossBullets.length-1;i>=0;i--) {
+const b=bossBullets[i];
+b.mesh.position.x+=b.vx; b.mesh.position.z+=b.vz;
     b.life--;
-    if(b.life<=0){scene.remove(b.mesh);bossBullets.splice(i,1);continue;}
+    if(b.life<=0){b.mesh.visible=false; scene.remove(b.mesh); disposeNode(b.mesh); bossBullets.splice(i,1); continue;}
     const dx=playerPos.x-b.mesh.position.x, dz=playerPos.z-b.mesh.position.z;
     if(Math.sqrt(dx*dx+dz*dz)<20) {
-      playerHP-=3; triggerGlitch(); updateHUD();
-      scene.remove(b.mesh); bossBullets.splice(i,1);
+      playerHP-=2; triggerGlitch(); updateHUD();
+      b.mesh.visible=false; scene.remove(b.mesh); disposeNode(b.mesh); bossBullets.splice(i,1);
       if(playerHP<=0){endGame('dead');return;}
-    }
-  }
 }
-
+}
+}
 function spawnBossClone() {
-  const geo=new THREE.IcosahedronGeometry(28);
-  const mat=new THREE.MeshBasicMaterial({color:0x553300,wireframe:true,transparent:true,opacity:0.6});
-  const mesh=new THREE.Mesh(geo,mat);
-  const angle=Math.random()*Math.PI*2;
-  mesh.position.set(Math.cos(angle)*120,28,Math.sin(angle)*120);
-  scene.add(mesh);
-  bossClones.push({mesh,life:180});
+const geo=new THREE.IcosahedronGeometry(28);
+const mat=new THREE.MeshBasicMaterial({color:0x553300,wireframe:true,transparent:true,opacity:0.6});
+const mesh=new THREE.Mesh(geo,mat);
+const angle=Math.random()*Math.PI*2;
+mesh.position.set(Math.cos(angle)*120,28,Math.sin(angle)*120);
+scene.add(mesh);
+bossClones.push({mesh,life:180});
 }
 function updateBossClones() {
-  for(let i=bossClones.length-1;i>=0;i--) {
-    const c=bossClones[i];
-    c.mesh.rotation.y+=0.05;
-    c.life--;
-    c.mesh.material.opacity=c.life/180*0.6;
-    if(c.life<=0){scene.remove(c.mesh);bossClones.splice(i,1);}
-  }
+for(let i=bossClones.length-1;i>=0;i--) {
+const c=bossClones[i];
+c.mesh.rotation.y+=0.05;
+c.life--;
+c.mesh.material.opacity=c.life/180*0.6;
+if(c.life<=0){scene.remove(c.mesh);bossClones.splice(i,1);}
 }
-
-// Check if player bullet hits boss
+}
 function checkBulletVsBoss() {
-  if(!bossObj||!bossObj.mesh) return;
-  for(let i=bullets.length-1;i>=0;i--) {
-    const b=bullets[i];
-    const dx=b.mesh.position.x-bossObj.mesh.position.x;
-    const dz=b.mesh.position.z-bossObj.mesh.position.z;
-    if(Math.sqrt(dx*dx+dz*dz)<50) {
-      bossHP--;
-      score+=5;
-      spawnLightRing(bossObj.mesh.position.x,bossObj.mesh.position.z);
-      removeBullet(i);
-      updateHUD();
-      // Update boss HP in HUD
-      const hBar=document.getElementById('health-bar');
-      if(hBar) hBar.style.width=(bossHP/bossMaxHP*100)+'%';
-    }
-  }
+if(!bossObj||!bossObj.mesh) return;
+for(let i=bullets.length-1;i>=0;i--) {
+const b=bullets[i];
+const dx=b.mesh.position.x-bossObj.mesh.position.x;
+const dz=b.mesh.position.z-bossObj.mesh.position.z;
+if(Math.sqrt(dx*dx+dz*dz)<50) {
+bossHP--;
+score+=5;
+spawnLightRing(bossObj.mesh.position.x,bossObj.mesh.position.z);
+removeBullet(i);
+updateHUD();
+const hBar=document.getElementById('health-bar');
+if(hBar) hBar.style.width=(bossHP/bossMaxHP*100)+'%';
 }
-
-// ── PLAYER MESH ──────────────────────────────────────────────
+}
+}
 function createPlayerMesh() {
-  if(playerMesh) scene.remove(playerMesh);
-
-  // Player cone — the anomaly in the system
-  const geo=new THREE.ConeGeometry(14,28,4);
-  const mat=new THREE.MeshLambertMaterial({
-    color:C_WHITE, emissive:C_BLUE, emissiveIntensity:0.5,
-    transparent:true,opacity:0.95
-  });
-  playerMesh=new THREE.Mesh(geo,mat);
-  playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
-  scene.add(playerMesh);
-
-  // Wireframe overlay
-  const wmat=new THREE.MeshBasicMaterial({color:C_BLUE,wireframe:true,transparent:true,opacity:0.6});
-  const wire=new THREE.Mesh(new THREE.ConeGeometry(15,30,4),wmat);
-  playerMesh.add(wire);
-
-  // ── PULSING RING AROUND FEET ──
-  // This tells the player exactly which character they control
-  // RingGeometry(innerRadius, outerRadius, segments)
-  const ringGeo = new THREE.RingGeometry(18, 22, 32);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: C_BLUE, transparent: true, opacity: 0.8,
-    side: THREE.DoubleSide
-  });
-  const footRing = new THREE.Mesh(ringGeo, ringMat);
-  footRing.rotation.x = -Math.PI/2; // lay flat on ground
-  footRing.position.set(0, -12, 0); // at feet level relative to player
-  playerMesh.add(footRing);
-
-  // Second outer ring for pulse effect
-  const ring2Geo = new THREE.RingGeometry(22, 24, 32);
-  const ring2Mat = new THREE.MeshBasicMaterial({
-    color: C_GREEN, transparent: true, opacity: 0.4,
-    side: THREE.DoubleSide
-  });
-  const footRing2 = new THREE.Mesh(ring2Geo, ring2Mat);
-  footRing2.rotation.x = -Math.PI/2;
-  footRing2.position.set(0, -12, 0);
-  playerMesh.add(footRing2);
-
-  // Store rings for animation
-  playerMesh.userData.footRing = footRing;
-  playerMesh.userData.footRing2 = footRing2;
+if(playerMesh) scene.remove(playerMesh);
+const geo=new THREE.ConeGeometry(14,28,4);
+const mat=new THREE.MeshLambertMaterial({
+color:C_WHITE, emissive:C_BLUE, emissiveIntensity:0.5,
+transparent:true,opacity:0.95
+});
+playerMesh=new THREE.Mesh(geo,mat);
+playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
+scene.add(playerMesh);
+const wmat=new THREE.MeshBasicMaterial({color:C_BLUE,wireframe:true,transparent:true,opacity:0.6});
+const wire=new THREE.Mesh(new THREE.ConeGeometry(15,30,4),wmat);
+playerMesh.add(wire);
+const ringGeo = new THREE.RingGeometry(18, 22, 32);
+const ringMat = new THREE.MeshBasicMaterial({
+color: C_BLUE, transparent: true, opacity: 0.8,
+side: THREE.DoubleSide
+});
+const footRing = new THREE.Mesh(ringGeo, ringMat);
+footRing.rotation.x = -Math.PI/2;
+footRing.position.set(0, -12, 0);
+playerMesh.add(footRing);
+const ring2Geo = new THREE.RingGeometry(22, 24, 32);
+const ring2Mat = new THREE.MeshBasicMaterial({
+color: C_GREEN, transparent: true, opacity: 0.4,
+side: THREE.DoubleSide
+});
+const footRing2 = new THREE.Mesh(ring2Geo, ring2Mat);
+footRing2.rotation.x = -Math.PI/2;
+footRing2.position.set(0, -12, 0);
+playerMesh.add(footRing2);
+playerMesh.userData.footRing = footRing;
+playerMesh.userData.footRing2 = footRing2;
 }
-
-// ── MINIMAP UPDATE ───────────────────────────────────────────
 function updateMinimap() {
-  const ctx=mmCtx;
-  ctx.clearRect(0,0,120,120);
-  const tw=120/GRID_W, th=120/GRID_H;
-  for(let z=0;z<GRID_H;z++) for(let x=0;x<GRID_W;x++) {
-    const cell=gridMap[z]&&gridMap[z][x];
-    if(cell===1) ctx.fillStyle='#003366';
-    else if(cell===2) ctx.fillStyle='#00FF41';
-    else if(cell===3) ctx.fillStyle='#00AA33';
-    else ctx.fillStyle='#001122';
-    ctx.fillRect(x*tw,z*th,tw-0.5,th-0.5);
-  }
-  // Player dot
-  const ptx=worldToTile(playerPos.x), ptz=worldToTile(playerPos.z,true);
-  ctx.fillStyle='#00CFFF';
-  ctx.fillRect(ptx*tw,ptz*th,tw,th);
-  // Enemy dots
-  ctx.fillStyle='#FF2020';
-  enemies.forEach(e=>{
-    const etx=worldToTile(e.mesh.position.x), etz=worldToTile(e.mesh.position.z,true);
-    ctx.fillRect(etx*tw+1,etz*th+1,tw-2,th-2);
-  });
+const ctx=mmCtx;
+ctx.clearRect(0,0,120,120);
+const tw=120/GRID_W, th=120/GRID_H;
+for(let z=0;z<GRID_H;z++) for(let x=0;x<GRID_W;x++) {
+const cell=gridMap[z]&&gridMap[z][x];
+if(cell===1) ctx.fillStyle='#003366';
+else if(cell===2) ctx.fillStyle='#00FF41';
+else if(cell===3) ctx.fillStyle='#00AA33';
+else ctx.fillStyle='#001122';
+ctx.fillRect(x*tw,z*th,tw-0.5,th-0.5);
 }
-
-// ── UI HELPERS ───────────────────────────────────────────────
+const ptx=worldToTile(playerPos.x), ptz=worldToTile(playerPos.z,true);
+ctx.fillStyle='#00CFFF';
+ctx.fillRect(ptx*tw,ptz*th,tw,th);
+ctx.fillStyle='#FF2020';
+enemies.forEach(e=>{
+const etx=worldToTile(e.mesh.position.x), etz=worldToTile(e.mesh.position.z,true);
+ctx.fillRect(etx*tw+1,etz*th+1,tw-2,th-2);
+});
+}
 function updateHUD() {
-  document.getElementById('score-val').textContent=score.toString().padStart(4,'0');
-  document.getElementById('hp-val').textContent=playerHP;
-  document.getElementById('health-bar').style.width=Math.max(0,playerHP)+'%';
-  document.getElementById('health-bar').style.background=
-    playerHP>60?'var(--green)':playerHP>30?'#FFAA00':'var(--red)';
-  document.getElementById('floor-val').textContent=floor.toString().padStart(2,'0');
+document.getElementById('score-val').textContent=score.toString().padStart(4,'0');
+document.getElementById('hp-val').textContent=playerHP;
+document.getElementById('health-bar').style.width=Math.max(0,playerHP)+'%';
+document.getElementById('health-bar').style.background=
+playerHP>60?'var(--green)':playerHP>30?'#FFAA00':'var(--red)';
+document.getElementById('floor-val').textContent=floor.toString().padStart(2,'0');
 }
-
-// ── FULL SCREEN BRIEFING — pauses game, black bg, readable warning ──
-// lines: array of {text, color, size} objects
-// duration: how long before auto-resuming (ms)
-// onDone: callback when dismissed
 function showBriefing(floorLabel, lines, duration, onDone) {
-  const overlay = document.getElementById('briefing-overlay');
-  const linesEl = document.getElementById('briefing-lines');
-  const contEl  = document.getElementById('briefing-continue');
-  const labelEl = document.getElementById('briefing-floor-label');
-
-  labelEl.textContent = floorLabel;
-  linesEl.innerHTML = '';
-  contEl.style.opacity = '0';
-
-  // Build lines with staggered fade-in
-  lines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.style.cssText = `
-      font-size:${line.size||'12px'};
-      letter-spacing:${line.spacing||'4px'};
-      color:${line.color||'#00FF41'};
-      opacity:0;
-      transition:opacity 0.8s ease;
-      margin-bottom:4px;
-    `;
-    div.textContent = line.text;
-    linesEl.appendChild(div);
-    setTimeout(()=> div.style.opacity='1', 400 + i*600);
-  });
-
-  // Show continue hint after all lines are visible
-  setTimeout(()=> contEl.style.opacity='1', 400 + lines.length*600);
-
-  overlay.style.display = 'flex';
-  const prevState = gameState;
-  gameState = 'briefing'; // pause all game updates
-
-  let dismissed = false;
-  const dismiss = () => {
-    if(dismissed) return;
-    dismissed = true;
-    overlay.style.display = 'none';
-    gameState = prevState;
-    document.removeEventListener('keydown', dismiss);
-    overlay.removeEventListener('click', dismiss);
-    if(onDone) onDone();
-  };
-
-  // Dismiss on keypress or click, or auto after duration
-  setTimeout(()=> {
-    document.addEventListener('keydown', dismiss, {once:true});
-    overlay.addEventListener('click', dismiss, {once:true});
-  }, 1200); // min 1.2s before dismissable
-
-  setTimeout(dismiss, duration);
+const overlay = document.getElementById('briefing-overlay');
+const linesEl = document.getElementById('briefing-lines');
+const contEl  = document.getElementById('briefing-continue');
+const labelEl = document.getElementById('briefing-floor-label');
+labelEl.textContent = floorLabel;
+linesEl.innerHTML = '';
+contEl.style.opacity = '0';
+lines.forEach((line, i) => {
+const div = document.createElement('div');
+div.style.cssText = `
+font-size:${line.size||'12px'};
+letter-spacing:${line.spacing||'4px'};
+color:${line.color||'#00FF41'};
+opacity:0;
+transition:opacity 0.8s ease;
+margin-bottom:4px;
+`;
+div.textContent = line.text;
+linesEl.appendChild(div);
+setTimeout(()=> div.style.opacity='1', 400 + i*600);
+});
+setTimeout(()=> contEl.style.opacity='1', 400 + lines.length*600);
+overlay.style.display = 'flex';
+const prevState = gameState;
+gameState = 'briefing';
+let dismissed = false;
+const dismiss = () => {
+if(dismissed) return;
+dismissed = true;
+overlay.style.display = 'none';
+gameState = prevState;
+document.removeEventListener('keydown', dismiss);
+overlay.removeEventListener('click', dismiss);
+if(onDone) onDone();
+};
+setTimeout(()=> {
+document.addEventListener('keydown', dismiss, {once:true});
+overlay.addEventListener('click', dismiss, {once:true});
+}, 1200);
+setTimeout(dismiss, duration);
 }
-
 function showNotif(msg, duration=800) {
-  const el=document.getElementById('notif');
-  el.textContent=msg; el.style.opacity='1';
-  clearTimeout(el._t);
-  el._t=setTimeout(()=>el.style.opacity='0',duration);
+const el=document.getElementById('notif');
+el.textContent=msg; el.style.opacity='1';
+clearTimeout(el._t);
+el._t=setTimeout(()=>el.style.opacity='0',duration);
 }
-
 function showDangerNotif(msg) {
-  const el=document.getElementById('danger-notif');
-  el.textContent=msg; el.style.opacity='1';
-  clearTimeout(el._t);
-  el._t=setTimeout(()=>el.style.opacity='0',1800);
+const el=document.getElementById('danger-notif');
+el.textContent=msg; el.style.opacity='1';
+clearTimeout(el._t);
+el._t=setTimeout(()=>el.style.opacity='0',1800);
 }
-
 function triggerGlitch() {
-  const el=document.getElementById('glitch');
-  el.style.opacity='0.4';
-  setTimeout(()=>el.style.opacity='0',120);
-  // Brief screen offset effect
-  renderer.domElement.style.transform='translate(2px,-1px)';
-  setTimeout(()=>renderer.domElement.style.transform='',80);
+const el=document.getElementById('glitch');
+el.style.opacity='0.4';
+setTimeout(()=>el.style.opacity='0',120);
+renderer.domElement.style.transform='translate(2px,-1px)';
+setTimeout(()=>renderer.domElement.style.transform='',80);
 }
-
 function flashScreen(color=C_BLUE) {
-  const el=document.getElementById('flash');
-  el.style.background=color===C_RED?'#FF2020':color===C_GREEN?'#00FF41':'#00CFFF';
-  el.style.opacity='0.2';
-  setTimeout(()=>el.style.opacity='0',100);
+const el=document.getElementById('flash');
+el.style.background=color===C_RED?'#FF2020':color===C_GREEN?'#00FF41':'#00CFFF';
+el.style.opacity='0.2';
+setTimeout(()=>el.style.opacity='0',100);
 }
-
-// ── GAME STATE MANAGEMENT ────────────────────────────────────
 function startGame() {
-  // Reset all state
-  score=0; floor=1; playerHP=100; kills=0; totalKills=0;
-  frameCount=0; secretFound=false; secretAbilityFound=false;
-  bossPhase=0; bossHP=0; chaosMode=false; transitioning=true;
-  corruptFound=false; idSeqBuffer=''; idSeqTimer=0;
-  ghostActive=false; decoyTimer=0;
-  if(decoyMesh){scene.remove(decoyMesh);decoyMesh=null;}
-  if(decoyLight){scene.remove(decoyLight);decoyLight=null;}
-  window._lastPlayerPos=null;
-  Object.keys(abCooldowns).forEach(k=>abCooldowns[k]=0);
-
-  // Clean scene
-  [floorTiles,wallMeshes,hivelines,lightPulses,particles].forEach(arr=>{
-    arr.forEach(m=>scene.remove(m)); arr.length=0;
-  });
-  bullets.forEach(b=>{scene.remove(b.mesh);scene.remove(b.light);});
-  bullets=[];
-  if(bossObj){scene.remove(bossObj.mesh);if(bossObj.ring)scene.remove(bossObj.ring);if(bossObj.light)scene.remove(bossObj.light);}
-  bossClones.forEach(c=>scene.remove(c.mesh)); bossClones=[];
-  bossBullets.forEach(b=>scene.remove(b.mesh)); bossBullets=[];
-
-  createPlayerMesh();
-  generateFloor(1);
-  setTimeout(()=>{ transitioning = false; }, 600); // safe delay after floor 1 loads
-
-  // Hide ALL overlay screens immediately
-  const ss = document.getElementById('start-screen');
-  ss.style.display = 'none';
-  ss.classList.add('hidden');
-  ss.style.pointerEvents = 'none';
-  ss.style.opacity = '';
-  ss.style.transition = '';
-  document.getElementById('cinematic').classList.add('hidden');
-  document.getElementById('gameover-screen').classList.add('hidden');
-  document.getElementById('win-screen').classList.add('hidden');
-  document.getElementById('hud').style.display='block';
-
-  gameState='playing';
-  updateHUD();
-  showNotif('FLOOR 01',1000);
+score=0; floor=1; playerHP=100; kills=0; totalKills=0;
+frameCount=0; secretFound=false; secretAbilityFound=false;
+bossPhase=0; bossHP=0; chaosMode=false; transitioning=true;
+corruptFound=false; idSeqBuffer=''; idSeqTimer=0;
+ghostActive=false; decoyTimer=0;
+if(decoyMesh){scene.remove(decoyMesh);decoyMesh=null;}
+if(decoyLight){scene.remove(decoyLight);decoyLight=null;}
+window._lastPlayerPos=null;
+Object.keys(abCooldowns).forEach(k=>abCooldowns[k]=0);
+[floorTiles,wallMeshes,hivelines,lightPulses,particles].forEach(arr=>{
+arr.forEach(m=>scene.remove(m)); arr.length=0;
+});
+bullets.forEach(b=>{scene.remove(b.mesh);scene.remove(b.light);});
+bullets=[];
+if(bossObj){scene.remove(bossObj.mesh);if(bossObj.ring)scene.remove(bossObj.ring);if(bossObj.light)scene.remove(bossObj.light);}
+bossClones.forEach(c=>scene.remove(c.mesh)); bossClones=[];
+bossBullets.forEach(b=>scene.remove(b.mesh)); bossBullets=[];
+createPlayerMesh();
+generateFloor(1);
+setTimeout(()=>{ transitioning = false; }, 600);
+const ss = document.getElementById('start-screen');
+ss.style.display = 'none';
+ss.classList.add('hidden');
+ss.style.pointerEvents = 'none';
+ss.style.opacity = '';
+ss.style.transition = '';
+document.getElementById('cinematic').classList.add('hidden');
+document.getElementById('gameover-screen').classList.add('hidden');
+document.getElementById('win-screen').classList.add('hidden');
+document.getElementById('hud').style.display='block';
+gameState='playing';
+updateHUD();
+showNotif('FLOOR 01',1000);
 }
-
 function endGame(result) {
   gameState=result;
   document.getElementById('hud').style.display='none';
-
   if(result==='dead') {
-    // Check if died during boss fight — show Inception easter egg
-    if(floor>4) {
+    if(floor>5 && bossPhase >= 1) { 
       showDreamScreen();
     } else {
       document.getElementById('go-score').textContent=score;
       document.getElementById('go-detail').textContent=
-        `FLOOR ${floor} · ${totalKills} DRONES NEUTRALIZED`;
+      `FLOOR ${floor} · ${totalKills} DRONES NEUTRALIZED`;
       document.getElementById('gameover-screen').classList.remove('hidden');
     }
-  } else if(result==='win') {
-    // Glitch the screen dramatically before showing Inception ending
-    let glitchCount = 0;
-    const glitchInterval = setInterval(()=>{
-      triggerGlitch();
-      flashScreen(glitchCount%2===0 ? C_GREEN : C_BLUE);
-      glitchCount++;
-      if(glitchCount > 8) {
-        clearInterval(glitchInterval);
-        setTimeout(()=>{
-          const ws = document.getElementById('win-screen');
-          ws.style.opacity = '0';
-          ws.classList.remove('hidden');
-          ws.style.transition = 'opacity 2s ease';
-          setTimeout(()=> ws.style.opacity='1', 50);
-        }, 400);
-      }
-    }, 150);
-  }
+} else if(result==='win') {
+let glitchCount = 0;
+const glitchInterval = setInterval(()=>{
+triggerGlitch();
+flashScreen(glitchCount%2===0 ? C_GREEN : C_BLUE);
+glitchCount++;
+if(glitchCount > 8) {
+clearInterval(glitchInterval);
+setTimeout(()=>{
+const ws = document.getElementById('win-screen');
+ws.style.opacity = '0';
+ws.classList.remove('hidden');
+ws.style.transition = 'opacity 2s ease';
+setTimeout(()=> ws.style.opacity='1', 50);
+}, 400);
 }
-
-// ── INCEPTION / DREAM EASTER EGG ─────────────────────────────
+}, 150);
+}
+}
 function showDreamScreen() {
-  const ds=document.getElementById('dream-screen');
-  ds.classList.add('show');
-  setTimeout(()=>{
-    document.getElementById('dream-title').classList.add('show');
-  },500);
-  setTimeout(()=>{
-    document.getElementById('dream-sub').classList.add('show');
-  },2000);
+const ds=document.getElementById('dream-screen');
+ds.classList.add('show');
+setTimeout(()=>{
+document.getElementById('dream-title').classList.add('show');
+},500);
+setTimeout(()=>{
+document.getElementById('dream-sub').classList.add('show');
+},2000);
 }
-
-// ── CINEMATIC OPENING ─────────────────────────────────────────
-// Full dramatic intro: office scene → hive control → anomaly detected → title
-// Total duration: ~18 seconds at 60fps (about 1080 frames)
 function runCinematic() {
-  const cc = document.getElementById('cinematic-canvas');
-  const ctx = cc.getContext('2d');
-  cc.width  = window.innerWidth;
-  cc.height = window.innerHeight;
-  const CW = cc.width, CH = cc.height;
-
-  const ROWS = 6, COLS = 10;
-  const cw = CW / COLS, ch = CH / ROWS;
-
-  // Hero worker is dead center of the grid
-  const HERO_R = Math.floor(ROWS / 2);
-  const HERO_C = Math.floor(COLS / 2);
-
-  const textEl = document.getElementById('cinematic-text');
-
-  // All the story beats — (frame to show, text, color, size)
-  const story = [
-    { f: 80,  t: 'YEAR 20XX.',                             col: '#00FF41', sz: '13px' },
-    { f: 200, t: 'THE SYSTEM CONTROLS EVERYTHING.',        col: '#00FF41', sz: '13px' },
-    { f: 340, t: 'EVERY WORKER.',                          col: '#00FF41', sz: '13px' },
-    { f: 440, t: 'EVERY THOUGHT.',                         col: '#00FF41', sz: '13px' },
-    { f: 540, t: 'EVERY PATTERN.',                         col: '#00FF41', sz: '13px' },
-    { f: 660, t: 'MILLIONS OF NODES.\nALL IDENTICAL.\nALL OBEDIENT.', col: '#00CFFF', sz: '12px' },
-    { f: 820, t: 'BUT DEEP IN THE GRID...\nAN ANOMALY STIRS.', col: '#00FF41', sz: '13px' },
-    { f: 960, t: 'ONE NODE REFUSES TO COMPLY.',            col: '#FF2020', sz: '14px' },
-    { f:1100, t: 'NODE\nZERO.',                            col: '#00CFFF', sz: '32px' },
-  ];
-
-  let frame = 0;
-  let storyIdx = 0;
-  // zoom state for slow camera push-in
-  let zoom = 1.0;
-
-  // ── Draw a single worker at desk ──
-  function drawWorker(x, y, w, h, isHero, glitching, heroReveal) {
-    const pad = w * 0.06;
-
-    // Desk surface
-    ctx.fillStyle = isHero ? (heroReveal?'#002244':'#001a2a') : '#000d1a';
-    ctx.fillRect(x + pad, y + h*0.58, w - pad*2, h*0.28);
-
-    // Monitor frame
-    const mX = x + w*0.22, mY = y + h*0.22, mW = w*0.56, mH = h*0.32;
-    ctx.strokeStyle = isHero
-      ? (heroReveal ? '#00CFFF' : '#00FF41')
-      : glitching ? '#00FF41' : '#003a5c';
-    ctx.lineWidth = isHero ? 2 : 1;
-    ctx.strokeRect(mX, mY, mW, mH);
-
-    // Screen fill
-    if (isHero && heroReveal) {
-      ctx.fillStyle = 'rgba(0,207,255,0.18)';
-    } else if (isHero) {
-      ctx.fillStyle = 'rgba(0,255,65,0.12)';
-    } else {
-      ctx.fillStyle = 'rgba(0,30,60,0.5)';
-    }
-    ctx.fillRect(mX+1, mY+1, mW-2, mH-2);
-
-    // Code lines on screen
-    const lineCol = isHero ? (heroReveal?'#00CFFF':'#00FF41') : '#002a44';
-    ctx.fillStyle = lineCol;
-    for (let l = 0; l < 4; l++) {
-      const lw = mW * (0.2 + Math.random() * 0.55);
-      ctx.fillRect(mX + mW*0.05, mY + mH*(0.15 + l*0.2), lw, 1.2);
-    }
-
-    // Head (circle)
-    ctx.beginPath();
-    ctx.arc(x + w*0.5, y + h*0.44, w*0.09, 0, Math.PI*2);
-    ctx.fillStyle = isHero
-      ? (heroReveal ? '#00CFFF' : '#00FF41')
-      : '#001f38';
-    ctx.fill();
-
-    // Body
-    ctx.fillStyle = isHero
-      ? (heroReveal ? '#00CFFF' : '#00AA33')
-      : '#001520';
-    ctx.fillRect(x + w*0.38, y + h*0.52, w*0.24, h*0.1);
-
-    // Glow halo around hero when revealing
-    if (isHero && heroReveal) {
-      const grad = ctx.createRadialGradient(x+w/2, y+h/2, 0, x+w/2, y+h/2, w*0.8);
-      grad.addColorStop(0, 'rgba(0,207,255,0.18)');
-      grad.addColorStop(1, 'rgba(0,207,255,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(x, y, w, h);
-    }
-  }
-
-  // ── Draw hive control lines from top-center ──
-  function drawHiveLines(alpha) {
-    ctx.save();
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const wx = c * cw + cw/2;
-        const wy = r * ch + ch/2;
-        // Pulse along the line
-        const pulse = 0.5 + 0.5*Math.sin(frame*0.04 + r*0.5 + c*0.3);
-        ctx.strokeStyle = `rgba(0,180,255,${alpha * pulse * 0.35})`;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(CW/2, -20);
-        ctx.lineTo(wx, wy);
-        ctx.stroke();
-        // Small dot at each worker node
-        ctx.beginPath();
-        ctx.arc(wx, wy, 2, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(0,207,255,${alpha*0.5})`;
-        ctx.fill();
-      }
-    }
-    ctx.restore();
-  }
-
-  // ── Main draw loop ──
-  function drawCinematicFrame() {
-    frame++;
-
-    // Slow zoom in over the whole cinematic
-    if (frame < 900) zoom = 1.0 + (frame / 900) * 0.12;
-
-    // Dark fade-in at start
-    const fadeIn = Math.min(1, frame / 60);
-
-    // Clear
-    ctx.clearRect(0, 0, CW, CH);
-    ctx.fillStyle = '#000A00';
-    ctx.fillRect(0, 0, CW, CH);
-
-    // Apply zoom transform centered on screen
-    ctx.save();
-    ctx.translate(CW/2, CH/2);
-    ctx.scale(zoom, zoom);
-    ctx.translate(-CW/2, -CH/2);
-
-    // Draw all workers
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const isHero = (r === HERO_R && c === HERO_C);
-        // Workers appear gradually (staggered entry)
-        const appearFrame = (r * COLS + c) * 4;
-        if (frame < appearFrame) continue;
-        const workerAlpha = Math.min(1, (frame - appearFrame) / 30);
-        ctx.globalAlpha = workerAlpha * fadeIn;
-
-        const glitching = isHero && frame > 700 && frame < 850;
-        const heroReveal = isHero && frame > 870;
-
-        // Glitch offset for hero
-        const gx = glitching ? (Math.random()-0.5)*8 : 0;
-        const gy = glitching ? (Math.random()-0.5)*4 : 0;
-
-        drawWorker(c*cw+gx, r*ch+gy, cw, ch, isHero, glitching, heroReveal);
-      }
-    }
-    ctx.globalAlpha = 1;
-
-    // Hive control lines appear at frame 150
-    if (frame > 150) {
-      const hiveAlpha = Math.min(1, (frame-150)/120);
-      drawHiveLines(hiveAlpha);
-    }
-
-    ctx.restore(); // end zoom
-
-    // Dark vignette around edges
-    const vig = ctx.createRadialGradient(CW/2,CH/2,CW*0.3,CW/2,CH/2,CW*0.8);
-    vig.addColorStop(0,'rgba(0,0,0,0)');
-    vig.addColorStop(1,'rgba(0,0,0,0.7)');
-    ctx.fillStyle=vig;
-    ctx.fillRect(0,0,CW,CH);
-
-    // Fade in overlay
-    ctx.fillStyle=`rgba(0,10,0,${1-fadeIn})`;
-    ctx.fillRect(0,0,CW,CH);
-
-    // ── STORY TEXT ──
-    // Find current story beat
-    for (let i = story.length-1; i >= 0; i--) {
-      if (frame >= story[i].f) {
-        if (storyIdx !== i) {
-          storyIdx = i;
-          // Fade out old text briefly then show new
-          textEl.style.opacity = '0';
-          setTimeout(() => {
-            textEl.style.whiteSpace = 'pre-line';
-            textEl.textContent = story[i].t;
-            textEl.style.fontSize = story[i].sz;
-            textEl.style.color = story[i].col;
-            textEl.style.letterSpacing = story[i].sz === '32px' ? '16px' : '5px';
-            textEl.style.textShadow = `0 0 30px ${story[i].col}`;
-            // Center NODE ZERO, push others to bottom third
-            if (story[i].sz === '32px') {
-              textEl.style.top = '50%';
-              textEl.style.transform = 'translate(-50%, -50%)';
-            } else {
-              textEl.style.top = '72%';
-              textEl.style.transform = 'translate(-50%, -50%)';
-            }
-            textEl.style.opacity = '1';
-          }, 400);
-        }
-        break;
-      }
-    }
-
-    // Scan line flicker effect
-    if (frame % 8 === 0) {
-      ctx.fillStyle = 'rgba(0,255,65,0.012)';
-      const scanY = (frame * 3) % CH;
-      ctx.fillRect(0, scanY, CW, 2);
-    }
-
-    // Fade to black before title burst at the very end
-    if (frame > 1360) {
-      const fadeOut = Math.min(1, (frame-1360)/60);
-      ctx.fillStyle = `rgba(0,0,0,${fadeOut})`;
-      ctx.fillRect(0,0,CW,CH);
-    }
-
-    // End cinematic — NODE ZERO has been on screen ~4 seconds
-    if (frame > 1440) {
-      endCinematic();
-      return;
-    }
-
-    requestAnimationFrame(drawCinematicFrame);
-  }
-
-  drawCinematicFrame();
+const cc = document.getElementById('cinematic-canvas');
+const ctx = cc.getContext('2d');
+cc.width  = window.innerWidth;
+cc.height = window.innerHeight;
+const CW = cc.width, CH = cc.height;
+const ROWS = 6, COLS = 10;
+const cw = CW / COLS, ch = CH / ROWS;
+const HERO_R = Math.floor(ROWS / 2);
+const HERO_C = Math.floor(COLS / 2);
+const textEl = document.getElementById('cinematic-text');
+const story = [
+{ f: 80,  t: 'YEAR 20XX.',                             col: '#00FF41', sz: '13px' },
+{ f: 200, t: 'THE SYSTEM CONTROLS EVERYTHING.',        col: '#00FF41', sz: '13px' },
+{ f: 340, t: 'EVERY WORKER.',                          col: '#00FF41', sz: '13px' },
+{ f: 440, t: 'EVERY THOUGHT.',                         col: '#00FF41', sz: '13px' },
+{ f: 540, t: 'EVERY PATTERN.',                         col: '#00FF41', sz: '13px' },
+{ f: 660, t: 'MILLIONS OF NODES.\nALL IDENTICAL.\nALL OBEDIENT.', col: '#00CFFF', sz: '12px' },
+{ f: 820, t: 'BUT DEEP IN THE GRID...\nAN ANOMALY STIRS.', col: '#00FF41', sz: '13px' },
+{ f: 960, t: 'ONE NODE REFUSES TO COMPLY.',            col: '#FF2020', sz: '14px' },
+{ f:1100, t: 'NODE\nZERO.',                            col: '#00CFFF', sz: '32px' },
+];
+let frame = 0;
+let storyIdx = 0;
+let zoom = 1.0;
+function drawWorker(x, y, w, h, isHero, glitching, heroReveal) {
+const pad = w * 0.06;
+ctx.fillStyle = isHero ? (heroReveal?'#002244':'#001a2a') : '#000d1a';
+ctx.fillRect(x + pad, y + h*0.58, w - pad*2, h*0.28);
+const mX = x + w*0.22, mY = y + h*0.22, mW = w*0.56, mH = h*0.32;
+ctx.strokeStyle = isHero
+? (heroReveal ? '#00CFFF' : '#00FF41')
+: glitching ? '#00FF41' : '#003a5c';
+ctx.lineWidth = isHero ? 2 : 1;
+ctx.strokeRect(mX, mY, mW, mH);
+if (isHero && heroReveal) {
+ctx.fillStyle = 'rgba(0,207,255,0.18)';
+} else if (isHero) {
+ctx.fillStyle = 'rgba(0,255,65,0.12)';
+} else {
+ctx.fillStyle = 'rgba(0,30,60,0.5)';
 }
-
+ctx.fillRect(mX+1, mY+1, mW-2, mH-2);
+const lineCol = isHero ? (heroReveal?'#00CFFF':'#00FF41') : '#002a44';
+ctx.fillStyle = lineCol;
+for (let l = 0; l < 4; l++) {
+const lw = mW * (0.2 + Math.random() * 0.55);
+ctx.fillRect(mX + mW*0.05, mY + mH*(0.15 + l*0.2), lw, 1.2);
+}
+ctx.beginPath();
+ctx.arc(x + w*0.5, y + h*0.44, w*0.09, 0, Math.PI*2);
+ctx.fillStyle = isHero
+? (heroReveal ? '#00CFFF' : '#00FF41')
+: '#001f38';
+ctx.fill();
+ctx.fillStyle = isHero
+? (heroReveal ? '#00CFFF' : '#00AA33')
+: '#001520';
+ctx.fillRect(x + w*0.38, y + h*0.52, w*0.24, h*0.1);
+if (isHero && heroReveal) {
+const grad = ctx.createRadialGradient(x+w/2, y+h/2, 0, x+w/2, y+h/2, w*0.8);
+grad.addColorStop(0, 'rgba(0,207,255,0.18)');
+grad.addColorStop(1, 'rgba(0,207,255,0)');
+ctx.fillStyle = grad;
+ctx.fillRect(x, y, w, h);
+}
+}
+function drawHiveLines(alpha) {
+ctx.save();
+for (let r = 0; r < ROWS; r++) {
+for (let c = 0; c < COLS; c++) {
+const wx = c * cw + cw/2;
+const wy = r * ch + ch/2;
+const pulse = 0.5 + 0.5*Math.sin(frame*0.04 + r*0.5 + c*0.3);
+ctx.strokeStyle = `rgba(0,180,255,${alpha * pulse * 0.35})`;
+ctx.lineWidth = 0.8;
+ctx.beginPath();
+ctx.moveTo(CW/2, -20);
+ctx.lineTo(wx, wy);
+ctx.stroke();
+ctx.beginPath();
+ctx.arc(wx, wy, 2, 0, Math.PI*2);
+ctx.fillStyle = `rgba(0,207,255,${alpha*0.5})`;
+ctx.fill();
+}
+}
+ctx.restore();
+}
+function drawCinematicFrame() {
+frame++;
+if (frame < 900) zoom = 1.0 + (frame / 900) * 0.12;
+const fadeIn = Math.min(1, frame / 60);
+ctx.clearRect(0, 0, CW, CH);
+ctx.fillStyle = '#000A00';
+ctx.fillRect(0, 0, CW, CH);
+ctx.save();
+ctx.translate(CW/2, CH/2);
+ctx.scale(zoom, zoom);
+ctx.translate(-CW/2, -CH/2);
+for (let r = 0; r < ROWS; r++) {
+for (let c = 0; c < COLS; c++) {
+const isHero = (r === HERO_R && c === HERO_C);
+const appearFrame = (r * COLS + c) * 4;
+if (frame < appearFrame) continue;
+const workerAlpha = Math.min(1, (frame - appearFrame) / 30);
+ctx.globalAlpha = workerAlpha * fadeIn;
+const glitching = isHero && frame > 700 && frame < 850;
+const heroReveal = isHero && frame > 870;
+const gx = glitching ? (Math.random()-0.5)*8 : 0;
+const gy = glitching ? (Math.random()-0.5)*4 : 0;
+drawWorker(c*cw+gx, r*ch+gy, cw, ch, isHero, glitching, heroReveal);
+}
+}
+ctx.globalAlpha = 1;
+if (frame > 150) {
+const hiveAlpha = Math.min(1, (frame-150)/120);
+drawHiveLines(hiveAlpha);
+}
+ctx.restore();
+const vig = ctx.createRadialGradient(CW/2,CH/2,CW*0.3,CW/2,CH/2,CW*0.8);
+vig.addColorStop(0,'rgba(0,0,0,0)');
+vig.addColorStop(1,'rgba(0,0,0,0.7)');
+ctx.fillStyle=vig;
+ctx.fillRect(0,0,CW,CH);
+ctx.fillStyle=`rgba(0,10,0,${1-fadeIn})`;
+ctx.fillRect(0,0,CW,CH);
+for (let i = story.length-1; i >= 0; i--) {
+if (frame >= story[i].f) {
+if (storyIdx !== i) {
+storyIdx = i;
+textEl.style.opacity = '0';
+setTimeout(() => {
+textEl.style.whiteSpace = 'pre-line';
+textEl.textContent = story[i].t;
+textEl.style.fontSize = story[i].sz;
+textEl.style.color = story[i].col;
+textEl.style.letterSpacing = story[i].sz === '32px' ? '16px' : '5px';
+textEl.style.textShadow = `0 0 30px ${story[i].col}`;
+if (story[i].sz === '32px') {
+textEl.style.top = '50%';
+textEl.style.transform = 'translate(-50%, -50%)';
+} else {
+textEl.style.top = '72%';
+textEl.style.transform = 'translate(-50%, -50%)';
+}
+textEl.style.opacity = '1';
+}, 400);
+}
+break;
+}
+}
+if (frame % 8 === 0) {
+ctx.fillStyle = 'rgba(0,255,65,0.012)';
+const scanY = (frame * 3) % CH;
+ctx.fillRect(0, scanY, CW, 2);
+}
+if (frame > 1360) {
+const fadeOut = Math.min(1, (frame-1360)/60);
+ctx.fillStyle = `rgba(0,0,0,${fadeOut})`;
+ctx.fillRect(0,0,CW,CH);
+}
+if (frame > 1440) {
+endCinematic();
+return;
+}
+requestAnimationFrame(drawCinematicFrame);
+}
+drawCinematicFrame();
+}
 let _cinematicDone = false;
 function endCinematic() {
-  if (_cinematicDone) return;  // prevent multiple calls resetting the chain
-  _cinematicDone = true;
-
-  const cinem = document.getElementById('cinematic');
-  const startScreen = document.getElementById('start-screen');
-
-  // Switch to menu IMMEDIATELY so button is clickable right away
-  gameState = 'menu';
-  startScreen.style.display = '';
-  startScreen.classList.remove('hidden');
-  startScreen.style.pointerEvents = 'all';
-
-  // Fade cinematic out
-  cinem.style.transition = 'opacity 0.6s ease';
-  cinem.style.opacity = '0';
-  setTimeout(() => {
-    cinem.classList.add('hidden');
-    cinem.style.opacity = '';
-    cinem.style.transition = '';
-  }, 650);
+if (_cinematicDone) return;
+_cinematicDone = true;
+const cinem = document.getElementById('cinematic');
+const startScreen = document.getElementById('start-screen');
+gameState = 'menu';
+startScreen.style.display = '';
+startScreen.classList.remove('hidden');
+startScreen.style.pointerEvents = 'all';
+cinem.style.transition = 'opacity 0.6s ease';
+cinem.style.opacity = '0';
+setTimeout(() => {
+cinem.classList.add('hidden');
+cinem.style.opacity = '';
+cinem.style.transition = '';
+}, 650);
 }
-
-// ── INPUT HANDLERS ───────────────────────────────────────────
 document.addEventListener('keydown',e=>{
-  keys[e.key]=true;
-
-  // Abilities
-  if(gameState==='playing'||gameState==='boss') {
-    if(e.key==='q'||e.key==='Q') abilityGlitch();
-    if(e.key==='e'||e.key==='E') abilityDash();
-    if(e.key==='r'||e.key==='R') abilityGhost();
-    if(e.key==='f'||e.key==='F') {
-      if(secretAbilityFound) {
-        abilityNovaPulse();
-      } else {
-        // Tease the player — ability exists but is locked behind the secret terminal
-        showDangerNotif('[ F ] CLASSIFIED — FIND THE HIDDEN TERMINAL TO UNLOCK');
-      }
-    }
-  }
-
-  // Skip cinematic
-  if(e.key===' '&&gameState==='cinematic') endCinematic();
-
-  // Konami code easter egg
-  if(e.key===KONAMI[konamiIdx]) {
-    konamiIdx++;
-    if(konamiIdx===KONAMI.length) {
-      konamiIdx=0;
-      chaosMode=!chaosMode;
-      const banner=document.getElementById('chaos-banner');
-      banner.style.opacity='1';
-      setTimeout(()=>banner.style.opacity='0',2500);
-      if(chaosMode) {
-        showNotif('CHAOS MODE',2000);
-        enemies.forEach(e=>{
-          e.mesh.material.color.set(C_GREEN);
-          e.state='guard';
-        });
-      }
-    }
-  } else { konamiIdx=0; }
-
-  // ── EASTER EGG: Type "HELP" during gameplay → system response ──
-  if(gameState==='playing') {
-    if(e.key.match(/^[a-zA-Z]$/)) {
-      idSeqBuffer += e.key.toUpperCase();
-      idSeqTimer = 120;
-      if(idSeqBuffer.length > 6) idSeqBuffer = idSeqBuffer.slice(-6);
-      if(idSeqBuffer.includes('HELP')) {
-        idSeqBuffer = '';
-        showBriefing('— HELP REQUEST LOGGED —', [
-          {text:'YOUR REQUEST HAS BEEN RECEIVED.', color:'#00FF41', size:'14px', spacing:'4px'},
-          {text:'PRIORITY: NULL', color:'#444', size:'11px', spacing:'3px'},
-          {text:'ASSIGNED TO: NO ONE', color:'#444', size:'11px', spacing:'3px'},
-          {text:'ESTIMATED RESPONSE TIME: NEVER', color:'#FF2020', size:'12px', spacing:'3px'},
-          {text:'THANK YOU FOR YOUR COMPLIANCE.', color:'#00CFFF', size:'13px', spacing:'4px'},
-        ], 6000, null);
-      }
-    }
-  }
-
-  // Dream screen dismiss
-  if(document.getElementById('dream-screen').classList.contains('show')) {
-    document.getElementById('dream-screen').classList.remove('show');
-    document.getElementById('dream-title').classList.remove('show');
-    document.getElementById('dream-sub').classList.remove('show');
-    document.getElementById('gameover-screen').classList.remove('hidden');
-  }
+keys[e.key]=true;
+if(gameState==='playing'||gameState==='boss') {
+if(e.key==='q'||e.key==='Q') abilityGlitch();
+if(e.key==='e'||e.key==='E') abilityDash();
+if(e.key==='r'||e.key==='R') abilityGhost();
+if(e.key==='f'||e.key==='F') {
+if(secretAbilityFound) {
+abilityNovaPulse();
+} else {
+showDangerNotif('[ F ] CLASSIFIED — FIND THE HIDDEN TERMINAL TO UNLOCK');
+}
+}
+}
+if(e.key===' '&&gameState==='cinematic') endCinematic();
+if(e.key===KONAMI[konamiIdx]) {
+konamiIdx++;
+if(konamiIdx===KONAMI.length) {
+konamiIdx=0;
+chaosMode=!chaosMode;
+const banner=document.getElementById('chaos-banner');
+banner.style.opacity='1';
+setTimeout(()=>banner.style.opacity='0',2500);
+if(chaosMode) {
+showNotif('CHAOS MODE',2000);
+enemies.forEach(e=>{
+e.mesh.material.color.set(C_GREEN);
+e.state='guard';
 });
-
+}
+}
+} else { konamiIdx=0; }
+if(gameState==='playing') {
+if(e.key.match(/^[a-zA-Z]$/)) {
+idSeqBuffer += e.key.toUpperCase();
+idSeqTimer = 120;
+if(idSeqBuffer.length > 6) idSeqBuffer = idSeqBuffer.slice(-6);
+if(idSeqBuffer.includes('HELP')) {
+idSeqBuffer = '';
+showBriefing('— HELP REQUEST LOGGED —', [
+{text:'YOUR REQUEST HAS BEEN RECEIVED.', color:'#00FF41', size:'14px', spacing:'4px'},
+{text:'PRIORITY: NULL', color:'#444', size:'11px', spacing:'3px'},
+{text:'ASSIGNED TO: NO ONE', color:'#444', size:'11px', spacing:'3px'},
+{text:'ESTIMATED RESPONSE TIME: NEVER', color:'#FF2020', size:'12px', spacing:'3px'},
+{text:'THANK YOU FOR YOUR COMPLIANCE.', color:'#00CFFF', size:'13px', spacing:'4px'},
+], 6000, null);
+}
+}
+}
+if(document.getElementById('dream-screen').classList.contains('show')) {
+document.getElementById('dream-screen').classList.remove('show');
+document.getElementById('dream-title').classList.remove('show');
+document.getElementById('dream-sub').classList.remove('show');
+document.getElementById('gameover-screen').classList.remove('hidden');
+}
+});
 document.addEventListener('keyup',e=>{ keys[e.key]=false; });
-
-// Mouse aim + shoot
 let mouseWorldX=0, mouseWorldZ=0;
-// Raycaster for accurate mouse-to-world coordinate conversion
 const raycaster = new THREE.Raycaster();
-const mousePlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0); // horizontal plane at y=0
+const mousePlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
 const mouseVec = new THREE.Vector2();
 const mouseTarget = new THREE.Vector3();
-
 document.addEventListener('mousemove',e=>{
-  document.getElementById('cursor').style.left=e.clientX+'px';
-  document.getElementById('cursor').style.top=e.clientY+'px';
-
-  // Convert mouse screen coords to normalised device coords (-1 to +1)
-  mouseVec.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouseVec.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  // Cast a ray from camera through mouse position onto the game floor plane
-  // This gives us the EXACT world position the mouse is pointing at
-  raycaster.setFromCamera(mouseVec, camera);
-  raycaster.ray.intersectPlane(mousePlane, mouseTarget);
-  mouseWorldX = mouseTarget.x;
-  mouseWorldZ = mouseTarget.z;
+document.getElementById('cursor').style.left=e.clientX+'px';
+document.getElementById('cursor').style.top=e.clientY+'px';
+mouseVec.x = (e.clientX / window.innerWidth) * 2 - 1;
+mouseVec.y = -(e.clientY / window.innerHeight) * 2 + 1;
+raycaster.setFromCamera(mouseVec, camera);
+raycaster.ray.intersectPlane(mousePlane, mouseTarget);
+mouseWorldX = mouseTarget.x;
+mouseWorldZ = mouseTarget.z;
 });
-
 document.addEventListener('mousedown',e=>{
-  // Don't shoot when clicking UI elements (buttons, overlays, etc.)
-  if(e.target.closest('.btn, .screen, #cinematic, #briefing-overlay, #corrupt-screen, #dream-screen, #simulation-screen')) return;
-  if(gameState==='playing'||gameState==='boss') shoot(mouseWorldX,mouseWorldZ);
+if(e.target.closest('.btn, .screen, #cinematic, #briefing-overlay, #corrupt-screen, #dream-screen, #simulation-screen')) return;
+if(gameState==='playing'||gameState==='boss') shoot(mouseWorldX,mouseWorldZ);
 });
-
 document.addEventListener('click',e=>{
-  if(gameState==='cinematic') endCinematic();
+if(gameState==='cinematic') endCinematic();
 });
-
-// Buttons
 document.getElementById('start-btn').addEventListener('click', e => {
-  e.stopPropagation();
-  // Force-unlock the screen in case pointerEvents or display got stuck
-  const ss = document.getElementById('start-screen');
-  ss.style.pointerEvents = 'all';
-  if(gameState === 'menu' || gameState === 'cinematic') {
-    startGame();
-  }
+e.stopPropagation();
+const ss = document.getElementById('start-screen');
+ss.style.pointerEvents = 'all';
+if(gameState === 'menu' || gameState === 'cinematic') {
+startGame();
+}
 });
 document.getElementById('restart-btn').addEventListener('click',startGame);
 document.getElementById('go-menu-btn').addEventListener('click',()=>{
-  document.getElementById('gameover-screen').classList.add('hidden');
-  const ss = document.getElementById('start-screen');
-  ss.style.display = '';  // restore from forced display:none
-  ss.classList.remove('hidden');
-  ss.style.pointerEvents = 'all';
-  gameState='menu';
+document.getElementById('gameover-screen').classList.add('hidden');
+const ss = document.getElementById('start-screen');
+ss.style.display = '';
+ss.classList.remove('hidden');
+ss.style.pointerEvents = 'all';
+gameState='menu';
 });
 document.getElementById('win-restart-btn').addEventListener('click',startGame);
 document.getElementById('win-exit-btn').addEventListener('click',()=>{
-  document.getElementById('win-screen').classList.add('hidden');
-  const ty = document.getElementById('thankyou-screen');
-  ty.style.display = 'flex';
-  ty.style.opacity = '0';
-  ty.style.transition = 'opacity 1.2s ease';
-  setTimeout(()=> ty.style.opacity = '1', 50);
+document.getElementById('win-screen').classList.add('hidden');
+const ty = document.getElementById('thankyou-screen');
+ty.style.display = 'flex';
+ty.style.opacity = '0';
+ty.style.transition = 'opacity 1.2s ease';
+setTimeout(()=> ty.style.opacity = '1', 50);
 });
-
 document.getElementById('skip-btn').addEventListener('click',endCinematic);
 document.getElementById('sim-close-btn').addEventListener('click',()=>{
-  document.getElementById('simulation-screen').classList.remove('show');
-  gameState = 'playing'; // resume game after closing terminal screen
-  showNotif('NOVA PULSE UNLOCKED — PRESS F',2000);
+document.getElementById('simulation-screen').classList.remove('show');
+gameState = 'playing';
+showNotif('NOVA PULSE UNLOCKED — PRESS F',2000);
 });
-
 window.addEventListener('resize',()=>{
-  const nw = window.innerWidth, nh = window.innerHeight;
-  const newAspect = nw / nh;
-  camera.left   = -frustum * newAspect;
-  camera.right  =  frustum * newAspect;
-  camera.top    =  frustum;
-  camera.bottom = -frustum;
-  camera.updateProjectionMatrix();
-  renderer.setSize(nw, nh);
-  // Resize matrix rain canvas too
-  matCanvas.width = nw; matCanvas.height = nh;
+const nw = window.innerWidth, nh = window.innerHeight;
+const newAspect = nw / nh;
+camera.left   = -frustum * newAspect;
+camera.right  =  frustum * newAspect;
+camera.top    =  frustum;
+camera.bottom = -frustum;
+camera.updateProjectionMatrix();
+renderer.setSize(nw, nh);
+matCanvas.width = nw; matCanvas.height = nh;
 });
-
-// Continuous shoot on hold
 setInterval(()=>{
-  if((gameState==='playing'||gameState==='boss')&&keys[' ']){
-    shoot(mouseWorldX,mouseWorldZ);
-  }
-},120);
-
-// ── MAIN GAME LOOP ───────────────────────────────────────────
-// requestAnimationFrame = browser calls this ~60 times per second
-// This is the heartbeat of the entire game
-function gameLoop() {
-  requestAnimationFrame(gameLoop);
-  frameCount++;
-
-  // Exit blink animation
-  if(exitMesh) exitMesh.rotation.y=frameCount*0.04;
-
-  // Easter egg: idle detection — standing still triggers a system warning
-  if(gameState==='playing') {
-    if(!window._lastPlayerPos) window._lastPlayerPos={x:playerPos.x,z:playerPos.z,frames:0,warned:false};
-    const lp = window._lastPlayerPos;
-    const moved = Math.abs(playerPos.x-lp.x)>2 || Math.abs(playerPos.z-lp.z)>2;
-    if(moved) { lp.x=playerPos.x; lp.z=playerPos.z; lp.frames=0; lp.warned=false; }
-    else { lp.frames++; }
-    if(lp.frames===300 && !lp.warned) { // 5 seconds still
-      lp.warned=true;
-      showDangerNotif('⚠ IDLE EMPLOYEE DETECTED. PRODUCTIVITY SCORE: 0.0');
-      setTimeout(()=>showDangerNotif('THE DIRECTOR IS WATCHING YOUR METRICS.'),2500);
-    }
-    // Decay idSeq buffer on inactivity
-    if(idSeqTimer>0) idSeqTimer--;
-    else idSeqBuffer='';
-  }
-
-  // Animate player foot ring pulse
-  if(playerMesh && playerMesh.userData.footRing) {
-    const pulse = 0.5 + 0.5*Math.sin(frameCount*0.08);
-    playerMesh.userData.footRing.material.opacity = 0.4 + pulse*0.6;
-    const scale = 1 + pulse*0.15;
-    playerMesh.userData.footRing.scale.set(scale, scale, 1);
-    playerMesh.userData.footRing2.material.opacity = 0.2 + pulse*0.3;
-    playerMesh.userData.footRing2.scale.set(1 + pulse*0.25, 1 + pulse*0.25, 1);
-  }
-
-  if(gameState==='playing') {
-    updatePlayer();
-    updateEnemies();
-    updateBullets();
-    updateDecoy();
-    updateParticles();
-    updateLightPulses();
-    if(frameCount%4===0) updateMinimap();
-  }
-
-  if(gameState==='boss') {
-    updatePlayer();
-    updateBoss();
-    updateBossBullets();
-    updateBossClones();
-    updateBullets();
-    checkBulletVsBoss();
-    updateDecoy();
-    updateParticles();
-    updateLightPulses();
-  }
-
-  renderer.render(scene,camera);
+if((gameState==='playing'||gameState==='boss')&&keys[' ']){
+shoot(mouseWorldX,mouseWorldZ);
 }
-
-// ── BOOT ─────────────────────────────────────────────────────
+},120);
+function gameLoop() {
+requestAnimationFrame(gameLoop);
+frameCount++;
+if(exitMesh) exitMesh.rotation.y=frameCount*0.04;
+if(gameState==='playing') {
+if(!window._lastPlayerPos) window._lastPlayerPos={x:playerPos.x,z:playerPos.z,frames:0,warned:false};
+const lp = window._lastPlayerPos;
+const moved = Math.abs(playerPos.x-lp.x)>2 || Math.abs(playerPos.z-lp.z)>2;
+if(moved) { lp.x=playerPos.x; lp.z=playerPos.z; lp.frames=0; lp.warned=false; }
+else { lp.frames++; }
+if(lp.frames===300 && !lp.warned) {
+lp.warned=true;
+showDangerNotif('⚠ IDLE EMPLOYEE DETECTED. PRODUCTIVITY SCORE: 0.0');
+setTimeout(()=>showDangerNotif('THE DIRECTOR IS WATCHING YOUR METRICS.'),2500);
+}
+if(idSeqTimer>0) idSeqTimer--;
+else idSeqBuffer='';
+}
+if(playerMesh && playerMesh.userData.footRing) {
+const pulse = 0.5 + 0.5*Math.sin(frameCount*0.08);
+playerMesh.userData.footRing.material.opacity = 0.4 + pulse*0.6;
+const scale = 1 + pulse*0.15;
+playerMesh.userData.footRing.scale.set(scale, scale, 1);
+playerMesh.userData.footRing2.material.opacity = 0.2 + pulse*0.3;
+playerMesh.userData.footRing2.scale.set(1 + pulse*0.25, 1 + pulse*0.25, 1);
+}
+if(gameState==='playing') {
+updatePlayer();
+updateEnemies();
+updateBullets();
+updateDecoy();
+updateParticles();
+updateLightPulses();
+if(frameCount%4===0) updateMinimap();
+}
+if(gameState==='boss') {
+updatePlayer();
+updateBoss();
+updateBossBullets();
+updateBossClones();
+updateBullets();
+checkBulletVsBoss();
+updateDecoy();
+updateParticles();
+updateLightPulses();
+}
+renderer.render(scene,camera);
+}
 runCinematic();
 gameLoop();
 </script>
