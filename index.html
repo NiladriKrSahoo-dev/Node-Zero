@@ -763,7 +763,7 @@ function generateFloor(floorNum) {
   if (exitMesh) { scene.remove(exitMesh); disposeNode(exitMesh); }
   if (secretTerminal) { scene.remove(secretTerminal); disposeNode(secretTerminal); }
   floorTiles = []; wallMeshes = [];
-  exitMesh = null; secretTerminal = null;
+  exitMesh = null; secretTerminal = null; exitPos = null;
 _seed = floorNum * 7919 + 12345;
 const layoutKey = Math.min(floorNum, 5);
 const fixedLayout = FIXED_LAYOUTS[layoutKey];
@@ -1464,9 +1464,12 @@ ab.classList.toggle('ready', abCooldowns[k]===0);
 ab.classList.toggle('on-cooldown', abCooldowns[k]>0);
 }
 });
-const edx=playerPos.x-exitPos.x, edz=playerPos.z-exitPos.z;
-const distToExit = Math.sqrt(edx*edx+edz*edz);
-const killThreshold = Math.ceil(waveEnemyCount * 0.75);
+  let distToExit = Infinity;
+  if(exitPos) {
+    const edx=playerPos.x-exitPos.x, edz=playerPos.z-exitPos.z;
+    distToExit = Math.sqrt(edx*edx+edz*edz);
+  }
+  const killThreshold = Math.ceil(waveEnemyCount * 0.75);
 const enoughKilled = kills >= killThreshold || enemies.length === 0;
 if (exitMesh) {
 exitMesh.material.color.set(enoughKilled ? C_EXIT : 0xFF4400);
