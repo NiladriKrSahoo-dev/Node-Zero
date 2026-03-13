@@ -632,6 +632,8 @@ let shootCooldown = 0;
 const COOLDOWNS = { q: 360, e: 120, r: 480, f: 300 };
 const abCooldowns = { q: 0, e: 0, r: 0, f: 0 };
 const abActive   = { q: false, e: false, r: false, f: false };
+let lastTime = performance.now();
+let dt = 1.0;
 let floorTiles    = [];
 let wallMeshes    = [];
 let enemies       = [];
@@ -1016,9 +1018,9 @@ a.state = 'chase'; a.alertTimer = 120;
 for (let i = enemies.length-1; i >= 0; i--) {
 const e = enemies[i];
 if (!e.mesh) continue;
-if (e.stunTimer > 0) { e.stunTimer--; continue; }
-if (e.jammTimer > 0) e.jammTimer--;
-if (e.chainTimer > 0) e.chainTimer--;
+if (e.stunTimer > 0) { e.stunTimer -= dt; continue; }
+if (e.jammTimer > 0) e.jammTimer -= dt;
+if (e.chainTimer > 0) e.chainTimer -= dt;
       const px = ghostActive ? decoyPos.x : playerPos.x;
       const pz = ghostActive ? decoyPos.z : playerPos.z;
       const ex = e.mesh.position.x, ez = e.mesh.position.z;
@@ -1061,12 +1063,13 @@ if (e.light) {
 e.light.position.x = e.mesh.position.x;
 e.light.position.z = e.mesh.position.z;
 }
-  if (!ghostActive && distToPlayer < e.size + 14 && frameCount%45===0) {
-    playerHP -= chaosMode ? 0 : 1; 
+  if (!ghostActive && distToPlayer < e.size + 14 && frameCount % 45 === 0) {
+    playerHP -= chaosMode ? 0 : 1;
     triggerGlitch();
     updateHUD();
     if (playerHP <= 0) { endGame('dead'); return; }
-}
+  }
+  e.mesh.rotation.y += 0.02 * dt;
 }
 }
 function moveEnemyToward(e, tx, tz) {
@@ -1074,7 +1077,7 @@ const dx = tx - e.mesh.position.x;
 const dz = tz - e.mesh.position.z;
 const dist = Math.sqrt(dx*dx+dz*dz);
 if (dist < 2) return;
-const spd = e.speed * (chaosMode ? 0.3 : 1);
+const spd = e.speed * (chaosMode ? 0.3 : 1) * dt;
 e.mesh.position.x += (dx/dist) * spd;
 e.mesh.position.z += (dz/dist) * spd;
 }
@@ -1140,10 +1143,10 @@ life: 80
 function updateBullets() {
 for (let i=bullets.length-1;i>=0;i--) {
 const b = bullets[i];
-b.mesh.position.x += b.vx;
-b.mesh.position.z += b.vz;
+b.mesh.position.x += b.vx * dt;
+b.mesh.position.z += b.vz * dt;
 b.light.position.copy(b.mesh.position);
-b.life--;
+b.life -= dt;
 if (b.life<=0) { removeBullet(i); continue; }
 let hit = false;
 for (let j=enemies.length-1;j>=0;j--) {
@@ -1274,12 +1277,16 @@ life:1.0
 function updateParticles() {
 for(let i=particles.length-1;i>=0;i--) {
 const p=particles[i];
-p.mesh.position.x+=p.vx; p.mesh.position.y+=p.vy; p.mesh.position.z+=p.vz;
-p.vy-=0.15;
-p.vx*=0.93; p.vz*=0.93;
-p.life-=0.035;
+p.mesh.position.x += p.vx * dt;
+p.mesh.position.y += p.vy * dt;
+p.mesh.position.z += p.vz * dt;
+p.vy -= 0.15 * dt;
+p.vx *= Math.pow(0.93, dt);
+p.vz *= Math.pow(0.93, dt);
+p.life -= 0.035 * dt;
 p.mesh.material.opacity=p.life;
-    p.mesh.rotation.x+=0.1; p.mesh.rotation.z+=0.1;
+    p.mesh.rotation.x += 0.1 * dt;
+    p.mesh.rotation.z += 0.1 * dt;
     if(p.life<=0){ p.mesh.visible=false; scene.remove(p.mesh); disposeNode(p.mesh); particles.splice(i,1); }
 }
 }
@@ -1362,9 +1369,9 @@ showDangerNotif('HOLOGRAM ACTIVE — YOU ARE INVISIBLE');
 }
 function updateDecoy() {
 if(decoyTimer <= 0) return;
-decoyTimer--;
+decoyTimer -= dt;
 if(decoyMesh) {
-decoyMesh.rotation.y += 0.04;
+decoyMesh.rotation.y += 0.04 * dt;
 decoyMesh.material.opacity = 0.3 + Math.sin(decoyTimer * 0.15) * 0.3;
 }
 if(decoyTimer <= 0) {
@@ -1448,15 +1455,16 @@ const tx=worldToTile(nx), tz=worldToTile(nz,true);
   }
 if(playerMesh) {
 playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
-playerMesh.rotation.y += 0.04;
+playerMesh.rotation.y += 0.04 * dt;
 }
 playerLight.position.set(playerPos.x,60,playerPos.z);
 camera.position.set(playerPos.x+300, 400, playerPos.z+300);
 camera.lookAt(playerPos.x,0,playerPos.z);
 ['q','e','r','f'].forEach(k=>{
-if(abCooldowns[k]>0) abCooldowns[k]--;
+if(abCooldowns[k]>0) abCooldowns[k] -= dt;
+if(abCooldowns[k]<0) abCooldowns[k] = 0;
 const maxCD = COOLDOWNS[k];
-const pct = ((maxCD-abCooldowns[k])/maxCD)*100;
+const pct = ((maxCD-Math.max(0, abCooldowns[k]))/maxCD)*100;
 const bar = document.getElementById(`cd-${k}`);
 if(bar) bar.style.width = pct+'%';
 const ab = document.getElementById(`ab-${k}`);
@@ -1628,32 +1636,32 @@ bossObj={mesh,ring:wire,light,angle:0,shootTimer:0,phase:bossPhase};
 }
 function updateBoss() {
 if(!bossObj||!bossObj.mesh) return;
-bossObj.angle+=0.008+bossPhase*0.004;
-bossObj.mesh.rotation.y=bossObj.angle;
-bossObj.ring.rotation.y=-bossObj.angle*1.3;
-bossObj.ring.rotation.x=bossObj.angle*0.7;
+bossObj.angle += (0.008 + bossPhase * 0.004) * dt;
+bossObj.mesh.rotation.y = bossObj.angle;
+bossObj.ring.rotation.y = -bossObj.angle * 1.3;
+bossObj.ring.rotation.x = bossObj.angle * 0.7;
 let bx,bz;
 if(bossPhase===1) {
-bx=Math.cos(bossObj.angle*0.5)*160;
-bz=Math.sin(bossObj.angle*0.5)*160;
+bx = Math.cos(bossObj.angle * 0.5) * 160;
+bz = Math.sin(bossObj.angle * 0.5) * 160;
 } else if(bossPhase===2) {
-bx=Math.cos(bossObj.angle*0.7)*130;
-bz=Math.sin(bossObj.angle*1.4)*80;
-if(frameCount%120===0) spawnBossClone();
+bx = Math.cos(bossObj.angle * 0.7) * 130;
+bz = Math.sin(bossObj.angle * 1.4) * 80;
+if(frameCount % 120 === 0) spawnBossClone();
 } else {
-bx=Math.cos(bossObj.angle*1.2)*100+Math.sin(frameCount*0.03)*40;
-bz=Math.sin(bossObj.angle*0.9)*100+Math.cos(frameCount*0.05)*40;
-if(frameCount%60===0) glitchWalls();
+bx = Math.cos(bossObj.angle * 1.2) * 100 + Math.sin(frameCount * 0.03) * 40;
+bz = Math.sin(bossObj.angle * 0.9) * 100 + Math.cos(frameCount * 0.05) * 40;
+if(frameCount % 60 === 0) glitchWalls();
 }
-bossObj.mesh.position.set(bx,44+Math.sin(bossObj.angle*2)*15,bz);
+bossObj.mesh.position.set(bx, 44 + Math.sin(bossObj.angle * 2) * 15, bz);
 bossObj.ring.position.copy(bossObj.mesh.position);
-  bossObj.light.position.set(bx,100,bz);
-  bossObj.shootTimer++;
-  const shootInterval = bossPhase===3?32:bossPhase===2?48:72;
-  if(bossObj.shootTimer>=shootInterval) {
-    bossObj.shootTimer=0;
-    spawnBossBullet(bx,bz);
-  }
+bossObj.light.position.set(bx, 100, bz);
+bossObj.shootTimer += dt;
+const shootInterval = bossPhase === 3 ? 32 : (bossPhase === 2 ? 48 : 72);
+if(bossObj.shootTimer >= shootInterval) {
+bossObj.shootTimer = 0;
+spawnBossBullet(bx, bz);
+}
 const dx=playerPos.x-bx, dz=playerPos.z-bz;
 if(Math.sqrt(dx*dx+dz*dz)<58 && frameCount%60===0) {
   playerHP-=3; // Decreased boss collision damage from 5 to 3
@@ -1683,8 +1691,9 @@ const dx=playerPos.x-bx, dz=playerPos.z-bz;
 function updateBossBullets() {
 for(let i=bossBullets.length-1;i>=0;i--) {
 const b=bossBullets[i];
-b.mesh.position.x+=b.vx; b.mesh.position.z+=b.vz;
-    b.life--;
+b.mesh.position.x += b.vx * dt;
+b.mesh.position.z += b.vz * dt;
+    b.life -= dt;
     if(b.life<=0){b.mesh.visible=false; scene.remove(b.mesh); disposeNode(b.mesh); bossBullets.splice(i,1); continue;}
     const dx=playerPos.x-b.mesh.position.x, dz=playerPos.z-b.mesh.position.z;
     if(Math.sqrt(dx*dx+dz*dz)<20) {
@@ -1706,9 +1715,9 @@ bossClones.push({mesh,life:180});
 function updateBossClones() {
 for(let i=bossClones.length-1;i>=0;i--) {
 const c=bossClones[i];
-c.mesh.rotation.y+=0.05;
-c.life--;
-c.mesh.material.opacity=c.life/180*0.6;
+c.mesh.rotation.y += 0.05 * dt;
+c.life -= dt;
+c.mesh.material.opacity = Math.max(0, c.life/180*0.6);
 if(c.life<=0){scene.remove(c.mesh);bossClones.splice(i,1);}
 }
 }
@@ -2289,8 +2298,13 @@ setInterval(() => {
 }, 30); // Higher frequency check, but shoot() handles cooldown
 function gameLoop() {
 requestAnimationFrame(gameLoop);
+const now = performance.now();
+const deltaTime = now - lastTime;
+lastTime = now;
+dt = deltaTime / 16.666;
+if (dt > 3) dt = 1; // Cap to prevent massive jumps on tab focus
 frameCount++;
-if(exitMesh) exitMesh.rotation.y=frameCount*0.04;
+if(exitMesh) exitMesh.rotation.y += 0.04 * dt;
 if(gameState==='playing') {
 if(!window._lastPlayerPos) window._lastPlayerPos={x:playerPos.x,z:playerPos.z,frames:0,warned:false};
 const lp = window._lastPlayerPos;
