@@ -551,8 +551,8 @@ const W = window.innerWidth, H = window.innerHeight;
 const TILE = 64;
 const GRID_W = 15;
 const GRID_H = 12;
-const PLAYER_SPEED = 3.0;
-const BULLET_SPEED = 7.5;
+const PLAYER_SPEED = 5.0;/*HERE*/
+const BULLET_SPEED = 10;
 const CHAIN_RADIUS = 110;
 const C_BLUE   = 0x00CFFF;
 const C_GREEN  = 0x00FF41;
@@ -892,8 +892,13 @@ const offZ = -(GRID_H * TILE) / 2;
 return { x: offX + tx * TILE + TILE/2, z: offZ + tz * TILE + TILE/2 };
 }
 function spawnEnemies(floorNum) {
-enemies.forEach(e => { scene.remove(e.mesh); if(e.light) scene.remove(e.light); });
-enemies = [];
+  enemies.forEach(e => {
+    e.mesh.visible = false;
+    scene.remove(e.mesh);
+    disposeNode(e.mesh);
+    if(e.light) scene.remove(e.light);
+  });
+  enemies = [];
   let count = 3 + floorNum * 2;
   if(floorNum === 3) count += 6; 
   if(floorNum === 4) count += 10; 
@@ -1014,76 +1019,39 @@ if (!e.mesh) continue;
 if (e.stunTimer > 0) { e.stunTimer--; continue; }
 if (e.jammTimer > 0) e.jammTimer--;
 if (e.chainTimer > 0) e.chainTimer--;
-const px = ghostActive ? decoyPos.x : playerPos.x;
-const pz = ghostActive ? decoyPos.z : playerPos.z;
-const ex = e.mesh.position.x, ez = e.mesh.position.z;
-const distToPlayer = Math.sqrt((px-ex)**2 + (pz-ez)**2);
-const playerVisible = distToPlayer < 220;
-if (chaosMode) {
-e.state = 'patrol';
-if (!e.chaosTarget) e.chaosTarget = randomOpenTile();
-const ctx = e.chaosTarget.x, ctz = e.chaosTarget.z;
-const dtx = ctx - e.mesh.position.x, dtz = ctz - e.mesh.position.z;
-if (Math.sqrt(dtx*dtx + dtz*dtz) < 20) {
-e.chaosTarget = randomOpenTile();
-}
-moveEnemyToward(e, ctx, ctz);
-} else if (e.type === 'drone') {
-if (playerVisible) {
-e.state = 'chase'; e.alertTimer = 80;
-} else if (e.alertTimer > 0) {
-e.alertTimer--;
-} else {
-e.state = 'patrol';
-}
-if (e.state === 'patrol') {
-if (!e.roamTarget) e.roamTarget = randomOpenTile();
-const rtx = e.roamTarget.x - e.mesh.position.x;
-const rtz = e.roamTarget.z - e.mesh.position.z;
-if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-} else {
-moveEnemyToward(e, px, pz);
-}
-} else if (e.type === 'manager') {
-if (playerVisible) { e.state = 'flank'; e.alertTimer = 100; }
-else if (e.alertTimer > 0) e.alertTimer--;
-else e.state = 'patrol';
-if (e.state === 'patrol') {
-if (!e.roamTarget) e.roamTarget = randomOpenTile();
-const rtx = e.roamTarget.x - e.mesh.position.x;
-const rtz = e.roamTarget.z - e.mesh.position.z;
-if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-} else {
-const flankAngle = Math.atan2(pz-ez, px-ex) + Math.PI/3;
-const flankX = px + Math.cos(flankAngle) * 60;
-const flankZ = pz + Math.sin(flankAngle) * 60;
-moveEnemyToward(e, flankX, flankZ);
-}
-} else if (e.type === 'enforcer') {
-if (playerVisible || distToPlayer < 300) {
-e.state = 'chase';
-}
-if (e.state === 'chase') {
-moveEnemyToward(e, px, pz);
-} else {
-if (!e.roamTarget) e.roamTarget = randomOpenTile();
-const rtx = e.roamTarget.x - e.mesh.position.x;
-const rtz = e.roamTarget.z - e.mesh.position.z;
-if (Math.sqrt(rtx*rtx + rtz*rtz) < 20) e.roamTarget = randomOpenTile();
-moveEnemyToward(e, e.roamTarget.x, e.roamTarget.z);
-}
-} else if (e.type === 'architect') {
-e.patrolAngle += 0.006;
-moveEnemyToward(e, px, pz);
-if (!e.glitchCooldown) e.glitchCooldown = 300 + Math.floor(Math.random()*200);
-e.glitchCooldown--;
-if (e.glitchCooldown <= 0 && playerVisible) {
-glitchWalls();
-e.glitchCooldown = 500 + Math.floor(Math.random()*200);
-}
-}
+      const px = ghostActive ? decoyPos.x : playerPos.x;
+      const pz = ghostActive ? decoyPos.z : playerPos.z;
+      const ex = e.mesh.position.x, ez = e.mesh.position.z;
+      const distToPlayer = Math.sqrt((px-ex)**2 + (pz-ez)**2);
+      
+      if (chaosMode) {
+        e.state = 'patrol';
+        if (!e.chaosTarget) e.chaosTarget = randomOpenTile();
+        const ctx = e.chaosTarget.x, ctz = e.chaosTarget.z;
+        const dtx = ctx - e.mesh.position.x, dtz = ctz - e.mesh.position.z;
+        if (Math.sqrt(dtx*dtx + dtz*dtz) < 20) {
+          e.chaosTarget = randomOpenTile();
+        }
+        moveEnemyToward(e, ctx, ctz);
+      } else if (e.type === 'drone') {
+        moveEnemyToward(e, px, pz);
+      } else if (e.type === 'manager') {
+        const flankAngle = Math.atan2(pz-ez, px-ex) + Math.PI/3;
+        const flankX = px + Math.cos(flankAngle) * 60;
+        const flankZ = pz + Math.sin(flankAngle) * 60;
+        moveEnemyToward(e, flankX, flankZ);
+      } else if (e.type === 'enforcer') {
+        moveEnemyToward(e, px, pz);
+      } else if (e.type === 'architect') {
+        e.patrolAngle += 0.006;
+        moveEnemyToward(e, px, pz);
+        if (!e.glitchCooldown) e.glitchCooldown = 300 + Math.floor(Math.random()*200);
+        e.glitchCooldown--;
+        if (e.glitchCooldown <= 0) {
+          glitchWalls();
+          e.glitchCooldown = 500 + Math.floor(Math.random()*200);
+        }
+      }
 e.mesh.rotation.y += 0.02;
 if (chaosMode) {
 e.mesh.material.color.set(C_GREEN);
@@ -1094,7 +1062,7 @@ e.light.position.x = e.mesh.position.x;
 e.light.position.z = e.mesh.position.z;
 }
   if (!ghostActive && distToPlayer < e.size + 14 && frameCount%45===0) {
-    playerHP -= chaosMode ? 0 : 1; // Decreased from 2 to 1 damage
+    playerHP -= chaosMode ? 0 : 1; 
     triggerGlitch();
     updateHUD();
     if (playerHP <= 0) { endGame('dead'); return; }
@@ -1224,16 +1192,17 @@ if (Math.sqrt(dx*dx+dz*dz) < CHAIN_RADIUS) {
 other.chained = true;
 other.chainTimer = 25;
 chainCount++;
-setTimeout(()=>{
-if (!other.mesh) return;
-spawnLightRing(other.mesh.position.x, other.mesh.position.z);
-other.hp -= 1;
-const idx = enemies.indexOf(other);
-if (other.hp<=0 && idx>-1) {
-killEnemy(idx);
-triggerChain(other, depth+1);
-}
-}, depth*100+80);
+    setTimeout(() => {
+      // Safety checks: ensure 'other' and its mesh still exist
+      if (!other || !other.mesh || !other.mesh.parent) return;
+      spawnLightRing(other.mesh.position.x, other.mesh.position.z);
+      other.hp -= 1;
+      const idx = enemies.indexOf(other);
+      if (other.hp <= 0 && idx > -1) {
+        killEnemy(idx);
+        triggerChain(other, depth + 1);
+      }
+    }, depth * 100 + 80);
 }
 });
 if (chainCount>0) showNotif(`${chainCount}x CHAIN`, 600);
@@ -1431,20 +1400,52 @@ if(keys['d']||keys['ArrowRight']) dx+=PLAYER_SPEED;
 if(dx!==0&&dz!==0){dx*=0.707;dz*=0.707;}
 const nx=playerPos.x+dx, nz=playerPos.z+dz;
 const tx=worldToTile(nx), tz=worldToTile(nz,true);
-if(gameState==='boss') {
-const distFromCenter = Math.sqrt(nx*nx+nz*nz);
-if(distFromCenter < bossArenaRadius) {
-playerPos.x=nx; playerPos.z=nz;
-} else {
-const angle = Math.atan2(nz, nx);
-playerPos.x = Math.cos(angle)*(bossArenaRadius-4);
-playerPos.z = Math.sin(angle)*(bossArenaRadius-4);
-}
-} else {
-if(tx>=0&&tx<GRID_W&&tz>=0&&tz<GRID_H&&gridMap[tz][tx]!==1) {
-playerPos.x=nx; playerPos.z=nz;
-}
-}
+  if (gameState === 'boss') {
+    const distFromCenter = Math.sqrt(nx * nx + nz * nz);
+    if (distFromCenter < bossArenaRadius) {
+      playerPos.x = nx; playerPos.z = nz;
+    } else {
+      const angle = Math.atan2(nz, nx);
+      playerPos.x = Math.cos(angle) * (bossArenaRadius - 4);
+      playerPos.z = Math.sin(angle) * (bossArenaRadius - 4);
+    }
+  } else {
+    // Better collision: check 4 points around player radius
+    const r = 10;
+    const points = [
+      { x: nx - r, z: nz - r }, { x: nx + r, z: nz - r },
+      { x: nx - r, z: nz + r }, { x: nx + r, z: nz + r }
+    ];
+    let canMove = true;
+    for (let p of points) {
+      const tx = worldToTile(p.x), tz = worldToTile(p.z, true);
+      if (tx < 0 || tx >= GRID_W || tz < 0 || tz >= GRID_H || gridMap[tz][tx] === 1) {
+        canMove = false; break;
+      }
+    }
+    if (canMove) {
+      playerPos.x = nx; playerPos.z = nz;
+    } else {
+      // Try sliding: check X and Z separately
+      let canMoveX = true;
+      for (let p of points) {
+        const tx = worldToTile(p.x), tz = worldToTile(playerPos.z + (p.z - nz), true);
+        if (tx < 0 || tx >= GRID_W || tz < 0 || tz >= GRID_H || gridMap[tz][tx] === 1) {
+          canMoveX = false; break;
+        }
+      }
+      if (canMoveX) playerPos.x = nx;
+
+      let canMoveZ = true;
+      for (let p of points) {
+        const tx = worldToTile(playerPos.x + (p.x - nx)), tz = worldToTile(p.z, true);
+        if (tx < 0 || tx >= GRID_W || tz < 0 || tz >= GRID_H || gridMap[tz][tx] === 1) {
+          canMoveZ = false; break;
+        }
+      }
+      if (canMoveZ) playerPos.z = nz;
+    }
+  }
 if(playerMesh) {
 playerMesh.position.set(playerPos.x,playerPos.y,playerPos.z);
 playerMesh.rotation.y += 0.04;
@@ -1529,16 +1530,17 @@ showBriefing('— FLOOR 03 — SECTOR RESTRICTED —', [
 {text:'NEW WALLS WILL RISE. PATHS WILL CLOSE.', color:'#FFAA00', size:'11px', spacing:'3px'},
 {text:'USE  [ E ]  STATIC DASH  TO PHASE THROUGH WALLS.', color:'#00CFFF', size:'13px', spacing:'4px'},
 {text:'REACH THE EXIT. BREAK THE PATTERN.', color:'#00FF41', size:'11px', spacing:'3px'},
+{text:'THE DIRECTOR AWAITS AFTER THREE MORE FLOORS.', color:'#00FF41', size:'11px', spacing:'3px'},
 ], 9000, null);
 }, 1400);
 }
 if(floor === 4) {
 setTimeout(()=>{
-showBriefing('— FLOOR 04 — FINAL SECTOR —', [
+showBriefing('— FLOOR 04 — AUTHORZED ENTRY ONLY—', [
 {text:'ARCHITECT ACTIVITY INCREASING.', color:'#FF2020', size:'16px', spacing:'6px'},
 {text:'THE GRID WILL MUTATE MORE FREQUENTLY.', color:'#FF6600', size:'12px', spacing:'4px'},
 {text:'DASH  [ E ]  PHASES THROUGH ANY WALL.', color:'#00CFFF', size:'13px', spacing:'4px'},
-{text:'THE DIRECTOR AWAITS BEYOND THIS FLOOR.', color:'#00FF41', size:'11px', spacing:'3px'},
+{text:'THE DIRECTOR AWAITS AFTER TWO MORE FLOORS.', color:'#00FF41', size:'11px', spacing:'3px'},
 ], 7000, null);
 }, 1400);
 }
@@ -1591,11 +1593,20 @@ setTimeout(()=>showDangerNotif('BREAK THE PATTERN. BREAK THE LOOP.'),1600);
 updateHUD();
 }
 function spawnBoss() {
-if(bossObj) {
-scene.remove(bossObj.mesh);
-if(bossObj.ring) scene.remove(bossObj.ring);
-if(bossObj.light) scene.remove(bossObj.light);
-}
+  if (bossObj) {
+    if (bossObj.mesh) {
+      bossObj.mesh.visible = false;
+      scene.remove(bossObj.mesh);
+      disposeNode(bossObj.mesh);
+    }
+    if (bossObj.ring) {
+      bossObj.ring.visible = false;
+      scene.remove(bossObj.ring);
+      disposeNode(bossObj.ring);
+    }
+    if (bossObj.light) scene.remove(bossObj.light);
+    bossObj = null;
+  }
 const geo = new THREE.IcosahedronGeometry(44);
 const mat = new THREE.MeshLambertMaterial({
 color: bossPhase===1?0xAA0000:bossPhase===2?0xAA5500:0xFF0000,
@@ -1858,14 +1869,43 @@ if(decoyMesh){scene.remove(decoyMesh);decoyMesh=null;}
 if(decoyLight){scene.remove(decoyLight);decoyLight=null;}
 window._lastPlayerPos=null;
 Object.keys(abCooldowns).forEach(k=>abCooldowns[k]=0);
-[floorTiles,wallMeshes,hivelines,lightPulses,particles].forEach(arr=>{
-arr.forEach(m=>scene.remove(m)); arr.length=0;
-});
-bullets.forEach(b=>{scene.remove(b.mesh);scene.remove(b.light);});
-bullets=[];
-if(bossObj){scene.remove(bossObj.mesh);if(bossObj.ring)scene.remove(bossObj.ring);if(bossObj.light)scene.remove(bossObj.light);}
-bossClones.forEach(c=>scene.remove(c.mesh)); bossClones=[];
-bossBullets.forEach(b=>scene.remove(b.mesh)); bossBullets=[];
+  [floorTiles, wallMeshes, hivelines, lightPulses, particles].forEach(arr => {
+    arr.forEach(m => {
+      if (m.isMesh || m.isLine || m.isPoints) {
+        m.visible = false;
+        scene.remove(m);
+        disposeNode(m);
+      } else {
+        scene.remove(m);
+      }
+    });
+    arr.length = 0;
+  });
+  bullets.forEach(b => {
+    b.mesh.visible = false;
+    scene.remove(b.mesh);
+    scene.remove(b.light);
+    disposeNode(b.mesh);
+  });
+  bullets = [];
+  if (bossObj) {
+    if (bossObj.mesh) { scene.remove(bossObj.mesh); disposeNode(bossObj.mesh); }
+    if (bossObj.ring) { scene.remove(bossObj.ring); disposeNode(bossObj.ring); }
+    if (bossObj.light) scene.remove(bossObj.light);
+    bossObj = null;
+  }
+  bossClones.forEach(c => {
+    c.mesh.visible = false;
+    scene.remove(c.mesh);
+    disposeNode(c.mesh);
+  });
+  bossClones = [];
+  bossBullets.forEach(b => {
+    b.mesh.visible = false;
+    scene.remove(b.mesh);
+    disposeNode(b.mesh);
+  });
+  bossBullets = [];
 createPlayerMesh();
 generateFloor(1);
 setTimeout(()=>{ transitioning = false; }, 600);
@@ -2126,6 +2166,7 @@ showDangerNotif('[ F ] CLASSIFIED — FIND THE HIDDEN TERMINAL TO UNLOCK');
 }
 }
 if(e.key===' '&&gameState==='cinematic') endCinematic();
+else if((e.key==='Enter'||e.key===' ')&&gameState==='menu') startGame();
 if(e.key===KONAMI[konamiIdx]) {
 konamiIdx++;
 if(konamiIdx===KONAMI.length) {
@@ -2222,22 +2263,30 @@ document.getElementById('simulation-screen').classList.remove('show');
 gameState = 'playing';
 showNotif('NOVA PULSE UNLOCKED — PRESS F',2000);
 });
-window.addEventListener('resize',()=>{
-const nw = window.innerWidth, nh = window.innerHeight;
-const newAspect = nw / nh;
-camera.left   = -frustum * newAspect;
-camera.right  =  frustum * newAspect;
-camera.top    =  frustum;
-camera.bottom = -frustum;
-camera.updateProjectionMatrix();
-renderer.setSize(nw, nh);
-matCanvas.width = nw; matCanvas.height = nh;
+window.addEventListener('resize', () => {
+  const nw = window.innerWidth, nh = window.innerHeight;
+  const newAspect = nw / nh;
+  camera.left = -frustum * newAspect;
+  camera.right = frustum * newAspect;
+  camera.top = frustum;
+  camera.bottom = -frustum;
+  camera.updateProjectionMatrix();
+  renderer.setSize(nw, nh);
+  matCanvas.width = nw; matCanvas.height = nh;
+
+  // Fix: recalculate matrix drops for the new width
+  const newCols = Math.floor(nw / 16);
+  if (newCols > matDrops.length) {
+    for (let i = matDrops.length; i < newCols; i++) matDrops[i] = 1;
+  } else if (newCols < matDrops.length) {
+    matDrops.length = newCols;
+  }
 });
-setInterval(()=>{
-if((gameState==='playing'||gameState==='boss')&&keys[' ']){
-shoot(mouseWorldX,mouseWorldZ);
-}
-},120);
+setInterval(() => {
+  if ((gameState === 'playing' || gameState === 'boss') && keys[' '] && shootCooldown <= 0) {
+    shoot(mouseWorldX, mouseWorldZ);
+  }
+}, 30); // Higher frequency check, but shoot() handles cooldown
 function gameLoop() {
 requestAnimationFrame(gameLoop);
 frameCount++;
